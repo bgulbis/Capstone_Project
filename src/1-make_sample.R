@@ -5,7 +5,16 @@
 library(tidyverse)
 
 # make a file connection
-con <- file("data/raw/en_US.blogs.txt.gz", "rb")
+con <- file("data/raw/en_US.blogs.txt.gz", "r")
+
+readsizeof <- 20000
+nooflines <- 0
+
+while((linesread <- length(readLines(con, readsizeof))) > 0) {
+    nooflines <- nooflines + linesread
+} 
+close(con)
+nooflines
 
 # check encoding, should be UTF-8
 # guess_encoding("data/raw/en_US.blogs.txt.gz")
