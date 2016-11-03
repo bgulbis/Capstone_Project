@@ -10,7 +10,7 @@ output: html_notebook
 2. The en_US.twitter.txt has how many lines of text?
 
 ```{r}
-con <- file("data/raw/en_US.twitter.txt", "r")
+con <- file("data/raw/en_US.twitter.txt.gz", "r")
 
 readsizeof <- 20000
 nooflines <- 0
