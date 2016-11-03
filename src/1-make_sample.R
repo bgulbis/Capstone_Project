@@ -15,7 +15,8 @@ while((linesread <- length(readLines(con, readsizeof))) > 0) {
 } 
 close(con)
 nooflines
-
+x <- sample(1:nooflines, nooflines * 0.1)
+y <- order(x)
 # check encoding, should be UTF-8
 # guess_encoding("data/raw/en_US.blogs.txt.gz")
 # guess_encoding("data/raw/en_US.news.txt.gz")
