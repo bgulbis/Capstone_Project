@@ -1,0 +1,27 @@
+---
+title: "Quiz 1"
+output: html_notebook
+---
+
+1. The en_US.blogs.txt  file is how many megabytes?
+
+**200 MB**
+
+2. The en_US.twitter.txt has how many lines of text?
+
+```{r}
+con <- file("data/raw/en_US.twitter.txt", "r")
+
+readsizeof <- 20000
+nooflines <- 0
+while((linesread <- length(readLines(con, readsizeof))) > 0) {
+    nooflines <- nooflines + linesread
+} 
+
+close(con)
+nooflines
+```
+
+**Over 2 million**
+
+3. What is the length of the longest line seen in any of the three en_US data sets?
