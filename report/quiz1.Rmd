@@ -3,14 +3,20 @@ title: "Quiz 1"
 output: html_notebook
 ---
 
+```{r setup, include=FALSE}
+library(tidyverse)
+library(stringr)
+```
+
+
 1. The en_US.blogs.txt  file is how many megabytes?
 
 **200 MB**
 
 2. The en_US.twitter.txt has how many lines of text?
 
-```{r}
-con <- file("data/raw/en_US.twitter.txt.gz", "r")
+```{r, eval=FALSE}
+con <- file("../data/raw/en_US.twitter.txt.gz", "r")
 
 readsizeof <- 20000
 nooflines <- 0
@@ -25,3 +31,52 @@ nooflines
 **Over 2 million**
 
 3. What is the length of the longest line seen in any of the three en_US data sets?
+
+```{r}
+blogs <- read_lines("../data/raw/en_US.blogs.txt.gz") %>%
+    str_trim("both")
+n <- map_int(blogs, nchar)
+x <- which.max(n)
+nchar(blogs[x])
+```
+
+```{r}
+news <- read_lines("../data/raw/en_US.news.txt.gz") %>%
+    str_trim("both")
+n <- map_int(news, nchar)
+x <- which.max(n)
+nchar(blogs[x])
+```
+
+**Over 40 thousand in the blogs data set**
+
+4. In the en_US twitter data set, if you divide the number of lines where the word "love" (all lowercase) occurs by the number of lines the word "hate" (all lowercase) occurs, about what do you get?
+
+```{r}
+tweets <- read_lines("../data/raw/en_US.twitter.txt.gz")
+
+love <- str_detect(tweets, "love")
+hate <- str_detect(tweets, "hate")
+sum(love) / sum(hate)
+
+```
+
+**4**
+
+5. The one tweet in the en_US twitter data set that matches the word "biostats" says what?
+
+```{r}
+x <- which(str_detect(tweets, "biostats"))
+tweets[x]
+```
+
+**They haven't studied for their biostats exam**
+
+6. How many tweets have the exact characters "A computer once beat me at chess, but it was no match for me at kickboxing". (I.e. the line matches those characters exactly.)
+
+```{r}
+kickbox <- str_detect(tweets, "A computer once beat me at chess, but it was no match for me at kickboxing")
+sum(kickbox)
+```
+
+**3**
