@@ -1,3 +1,4 @@
+# make corpus
 
 library(tidyverse)
 library(stringr)
@@ -26,6 +27,10 @@ write_rds(corpus_blogs, "data/tidy/corpus_blogs.Rds")
 
 dtm_blogs <- DocumentTermMatrix(corpus_blogs)
 
+write_rds(dtm_blogs, "data/tidy/dtm_blogs.Rds")
+
+rm(blogs, corpus_blogs, dtm_blogs)
+
 # news -------------------------------------------------
 news <- read_lines("data/raw/en_US.news.txt.gz") %>%
     str_to_lower()
@@ -45,6 +50,10 @@ corpus_news <- Corpus(VectorSource(news)) %>%
 write_rds(corpus_news, "data/tidy/corpus_news.Rds")
 
 dtm_news <- DocumentTermMatrix(corpus_news)
+
+write_rds(dtm_news, "data/tidy/dtm_news.Rds")
+
+rm(news, corpus_news, dtm_news)
 
 # tweets -----------------------------------------------
 tweets <- read_lines("data/raw/en_US.twitter.txt.gz") %>%
@@ -66,3 +75,6 @@ write_rds(corpus_tweets, "data/tidy/corpus_tweets.Rds")
 
 dtm_tweets <- DocumentTermMatrix(corpus_tweets)
 
+write_rds(dtm_tweets, "data/tidy/dtm_tweets.Rds")
+
+rm(tweets, corpus_tweets, dtm_tweets)
