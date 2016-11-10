@@ -4,6 +4,7 @@ library(tidyverse)
 library(stringr)
 library(tm)
 library(SnowballC)
+library(parallel)
 
 profanity <- read_lines("data/external/profanity.txt")
 
@@ -24,13 +25,14 @@ make_corpus <- function(pattern, name, read_dir = "data/raw", save_dir = "data/t
         tm_map(removeWords, profanity) %>%
         tm_map(removePunctuation) %>%
         tm_map(removeNumbers) %>% 
-        tm_map(stemDocument)
+        tm_map(stemDocument) %>%
+        tm_map(stripWhitespace)
     
     # tm_map(content_transformer(stringr::str_to_lower))
     # keep <- map_lgl(x, ~ runif(1) >= 1 - perc)
     # x <- x[keep]
     
-    write_rds(corp, paste0(dir, "/corpus_", name, ".Rds"))
+    write_rds(corp, paste0(save_dir, "/corpus_", name, ".Rds"))
 
     # dtm_x <- DocumentTermMatrix(corpus_x)
     # 
@@ -40,20 +42,12 @@ make_corpus <- function(pattern, name, read_dir = "data/raw", save_dir = "data/t
 # read text --------------------------------------------
 
 make_corpus("en_US.blogs.txt.gz", "blogs", perc = 0.03)
-make_corpus("data/raw/en_US.news.txt.gz", "news", perc = 0.03) 
-make_corpus("data/raw/en_US.twitter.txt.gz", "tweets", perc = 0.03) 
+make_corpus("en_US.news.txt.gz", "news", perc = 0.03) 
+make_corpus("en_US.twitter.txt.gz", "tweets", perc = 0.03) 
 
 # tmp <- read_lines("data/raw/en_US.blogs.txt.gz") 
 # x <- which(str_detect(tmp, "So little A, who's 7 now"))
+blogs <- read_rds("data/tidy/corpus_blogs.Rds")
 
-# corp <- Corpus(VectorSource(blogs))
-blogs <- Corpus(DirSource("data/raw", pattern = "en_US.blogs.txt.gz", encoding = "UTF-8", mode = "text")) %>%
-    tm_map(content_transformer(function(x) iconv(x, to = "UTF-8", sub = " "))) %>%
-    tm_map(content_transformer(tolower)) %>%
-    # tm_map(content_transformer(stringr::str_to_lower))
-    tm_map(removeWords, profanity) %>%
-    tm_map(removePunctuation) %>%
-    tm_map(removeNumbers) %>% 
-    tm_map(stemDocument)
-
+dtm <- DocumentTermMatrix(blogs)
 tdm <- TermDocumentMatrix(blogs)
