@@ -4,8 +4,9 @@ library(tidyverse)
 library(stringr)
 library(tm)
 library(SnowballC)
-library(parallel)
+library(doParallel)
 
+registerDoParallel()
 profanity <- read_lines("data/external/profanity.txt")
 
 #' This function reads in a text file, creates a corpus and Document Term 
