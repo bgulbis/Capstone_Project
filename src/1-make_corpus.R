@@ -51,4 +51,6 @@ make_corpus("en_US.twitter.txt.gz", "tweets", perc = 0.03)
 blogs <- read_rds("data/tidy/corpus_blogs.Rds")
 
 dtm <- DocumentTermMatrix(blogs)
-tdm <- TermDocumentMatrix(blogs)
+write_rds(dtm, "data/tidy/dtm_blogs.Rds")
+mat <- as.matrix(dtm)
+# tdm <- TermDocumentMatrix(blogs)
