@@ -4,9 +4,7 @@ library(tidyverse)
 library(stringr)
 library(tm)
 library(SnowballC)
-library(doParallel)
 
-registerDoParallel()
 profanity <- read_lines("data/external/profanity.txt")
 
 #' This function reads in a text file, creates a corpus and Document Term 
@@ -48,9 +46,8 @@ make_corpus("en_US.twitter.txt.gz", "tweets", perc = 0.03)
 
 # tmp <- read_lines("data/raw/en_US.blogs.txt.gz") 
 # x <- which(str_detect(tmp, "So little A, who's 7 now"))
-blogs <- read_rds("data/tidy/corpus_blogs.Rds")
 
-dtm <- DocumentTermMatrix(blogs)
-write_rds(dtm, "data/tidy/dtm_blogs.Rds")
-mat <- as.matrix(dtm)
-# tdm <- TermDocumentMatrix(blogs)
+blogs <- read_rds("data/tidy/corpus_blogs.Rds")
+tdm <- TermDocumentMatrix(blogs)
+write_rds(tdm, "data/tidy/tdm_blogs.Rds")
+
