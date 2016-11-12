@@ -5,8 +5,6 @@ library(stringr)
 library(tm)
 library(SnowballC)
 
-profanity <- read_lines("data/external/profanity.txt")
-
 #' This function reads in a text file, creates a corpus and Document Term 
 #' Matrix, and saves the files as Rds objects.
 #' 
@@ -18,6 +16,8 @@ profanity <- read_lines("data/external/profanity.txt")
 #'   data/tidy
 #' @param perc percent of lines to keep in corpus; defaults to 0.1 (10%)
 make_corpus <- function(pattern, name, read_dir = "data/raw", save_dir = "data/tidy", perc = 0.1) {
+    profanity <- read_lines("data/external/profanity.txt")
+
     corp <- Corpus(DirSource("data/raw", pattern = pattern, encoding = "UTF-8", mode = "text")) %>%
         tm_map(content_transformer(function(x) iconv(x, from = "latin1", to = "ASCII", sub = " "))) %>%
         # tm_map(content_transformer(function(x) iconv(x, to = "UTF-8", sub = " "))) %>%
@@ -62,5 +62,3 @@ tweets <- read_rds("data/tidy/corpus_tweets.Rds")
 tdm <- TermDocumentMatrix(tweets)
 write_rds(tdm, "data/tidy/tdm_tweets.Rds")
 rm(tweets)
-
-
