@@ -79,7 +79,16 @@ tbl_tweets <- as_tibble(freq_tweets) %>%
     rownames_to_column("word") %>%
     arrange(desc(value))
 
+# save files -------------------------------------------
+
+write_rds(corpus_blogs, "data/tidy/corpus_blogs_sample.Rds")
+write_rds(corpus_news, "data/tidy/corpus_news_sample.Rds")
+write_rds(corpus_tweets, "data/tidy/corpus_tweets_sample.Rds")
+
+write_rds(tdm_blogs, "data/tidy/tdm_blogs_sample.Rds")
+write_rds(tdm_news, "data/tidy/tdm_news_sample.Rds")
+write_rds(tdm_tweets, "data/tidy/tdm_tweets_sample.Rds")
+
 # library(wordcloud)
-# set.seed(77123)
 # wordcloud(names(freq), freq, min.freq = 2000)
 
