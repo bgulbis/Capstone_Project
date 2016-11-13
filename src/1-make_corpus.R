@@ -51,10 +51,12 @@ corpus_tweets <- make_corpus(tweets)
 
 # Term Document Matrices -------------------------------
 profanity <- read_lines("data/external/profanity.txt")
-tdm_ctrl <- list(tolower = TRUE,
+tdm_ctrl <- list(bounds = list(global = c(3, Inf)),
+                 tolower = TRUE,
                  stopwords = profanity, 
                  removePunctuation = TRUE, 
-                 removeNumbers = TRUE)
+                 removeNumbers = TRUE,
+                 stemming = TRUE)
 
 tdm_blogs <- TermDocumentMatrix(corpus_blogs, control = tdm_ctrl)
 tdm_news <- TermDocumentMatrix(corpus_news, control = tdm_ctrl)
