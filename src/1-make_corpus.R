@@ -4,61 +4,80 @@ library(tidyverse)
 library(stringr)
 library(tm)
 library(SnowballC)
+library(slam)
 
-#' This function reads in a text file, creates a corpus and Document Term 
-#' Matrix, and saves the files as Rds objects.
+#' This function takes the name of a file with text, reads it in and returns a
+#' sample of the lines as a character vector
 #' 
-#' @param pattern name of the text file to read in
-#' @param name name to append to each saved data file
-#' @param read_dir directory where the raw data files are located; defaults to
-#'   data/raw
-#' @param save_dir directory where the data files should be saved; defaults to
-#'   data/tidy
-#' @param perc percent of lines to keep in corpus; defaults to 0.1 (10%)
-make_corpus <- function(pattern, name, read_dir = "data/raw", save_dir = "data/tidy", perc = 0.1) {
-    profanity <- read_lines("data/external/profanity.txt")
-
-    corp <- Corpus(DirSource("data/raw", pattern = pattern, encoding = "UTF-8", mode = "text")) %>%
-        tm_map(content_transformer(function(x) iconv(x, from = "latin1", to = "ASCII", sub = " "))) %>%
-        # tm_map(content_transformer(function(x) iconv(x, to = "UTF-8", sub = " "))) %>%
-        tm_map(content_transformer(tolower)) %>%
-        tm_map(removeWords, profanity) %>%
-        tm_map(removePunctuation) %>%
-        tm_map(removeNumbers) %>% 
-        tm_map(stemDocument) %>%
-        tm_map(stripWhitespace)
-    
-    # tm_map(content_transformer(stringr::str_to_lower))
-    # keep <- map_lgl(x, ~ runif(1) >= 1 - perc)
-    # x <- x[keep]
-    
-    write_rds(corp, paste0(save_dir, "/corpus_", name, ".Rds"))
-
-    # dtm_x <- DocumentTermMatrix(corpus_x)
-    # 
-    # write_rds(dtm_x, paste0(dir, "/dtm_", name, ".Rds"))
+#' @param x
+#'   
+#' @return character vector
+make_sample <- function(x) {
+    tmp <- read_lines(x)
+    set.seed(77123)
+    keep <- sample.int(length(tmp), 0.1 * length(tmp))
+    tmp[keep]
 }
 
-# read text --------------------------------------------
 
-make_corpus("en_US.blogs.txt.gz", "blogs", perc = 0.03)
-make_corpus("en_US.news.txt.gz", "news", perc = 0.03) 
-make_corpus("en_US.twitter.txt.gz", "tweets", perc = 0.03) 
+#' This function takes a character vector and creates a corpus, performing some
+#' transformations on the words
+#' 
+#' @param x character vector
+#' 
+#' @return VCorpus object
+make_corpus <- function(x) {
+    Corpus(VectorSource(x)) %>%
+        tm_map(content_transformer(function(y) iconv(y, from = "latin1", to = "ASCII", sub = " ")))
+        # tm_map(content_transformer(tolower)) 
+        # tm_map(removeWords, profanity) %>%
+        # tm_map(removePunctuation) %>%
+        # tm_map(removeNumbers) %>% 
+        # tm_map(stemDocument) %>%
+        # tm_map(stripWhitespace)
+}
 
-# tmp <- read_lines("data/raw/en_US.blogs.txt.gz")
+# sample text ------------------------------------------
+blogs <- make_sample("data/raw/en_US.blogs.txt.gz")
+news <- make_sample("data/raw/en_US.news.txt.gz") 
+tweets <- make_sample("data/raw/en_US.twitter.txt.gz") 
+
+# make corpus ------------------------------------------
+corpus_blogs <- make_corpus(blogs)
+corpus_news <- make_corpus(news)
+corpus_tweets <- make_corpus(tweets)
+
 # x <- which(str_detect(tmp, "So little A, who's 7 now"))
 
-blogs <- read_rds("data/tidy/corpus_blogs.Rds")
-tdm <- TermDocumentMatrix(blogs)
-write_rds(tdm, "data/tidy/tdm_blogs.Rds")
-rm(blogs)
+# Term Document Matrices -------------------------------
+profanity <- read_lines("data/external/profanity.txt")
+tdm_ctrl <- list(tolower = TRUE,
+                 stopwords = profanity, 
+                 removePunctuation = TRUE, 
+                 removeNumbers = TRUE)
 
-news <- read_rds("data/tidy/corpus_news.Rds")
-tdm <- TermDocumentMatrix(news)
-write_rds(tdm, "data/tidy/tdm_news.Rds")
-rm(news)
+tdm_blogs <- TermDocumentMatrix(corpus_blogs, control = tdm_ctrl)
+tdm_news <- TermDocumentMatrix(corpus_news, control = tdm_ctrl)
+tdm_tweets <- TermDocumentMatrix(corpus_tweets, control = tdm_ctrl)
 
-tweets <- read_rds("data/tidy/corpus_tweets.Rds")
-tdm <- TermDocumentMatrix(tweets)
-write_rds(tdm, "data/tidy/tdm_tweets.Rds")
-rm(tweets)
+# word frequencies -------------------------------------
+freq_blogs <- row_sums(tdm_blogs, na.rm = TRUE)
+freq_news <- row_sums(tdm_news, na.rm = TRUE)
+freq_tweets <- row_sums(tdm_tweets, na.rm = TRUE)
+
+tbl_blogs <- as_tibble(freq_blogs) %>%
+    rownames_to_column("word") %>%
+    arrange(desc(value))
+
+tbl_news <- as_tibble(freq_news) %>%
+    rownames_to_column("word") %>%
+    arrange(desc(value))
+
+tbl_tweets <- as_tibble(freq_tweets) %>%
+    rownames_to_column("word") %>%
+    arrange(desc(value))
+
+# library(wordcloud)
+# set.seed(77123)
+# wordcloud(names(freq), freq, min.freq = 2000)
+
