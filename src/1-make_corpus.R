@@ -29,12 +29,6 @@ make_sample <- function(x) {
 make_corpus <- function(x) {
     Corpus(VectorSource(x)) %>%
         tm_map(content_transformer(function(y) iconv(y, from = "latin1", to = "ASCII", sub = " ")))
-        # tm_map(content_transformer(tolower)) 
-        # tm_map(removeWords, profanity) %>%
-        # tm_map(removePunctuation) %>%
-        # tm_map(removeNumbers) %>% 
-        # tm_map(stemDocument) %>%
-        # tm_map(stripWhitespace)
 }
 
 # sample text ------------------------------------------
@@ -91,4 +85,6 @@ write_rds(tdm_tweets, "data/tidy/tdm_tweets_sample.Rds")
 
 # library(wordcloud)
 # wordcloud(names(freq), freq, min.freq = 2000)
-
+# library(wordnet)
+# setDict("dict")
+# getDict()
