@@ -26,7 +26,13 @@ profanity <- read_lines("data/external/profanity.txt") %>%
 blogs_prof <- anti_join(blogs_tokens, profanity, by = c("word" = "value"))
 
 blogs_count <- blogs_prof %>%
-    # filter(!str_detect(word, "[0-9]")) %>%
+    count(word, sort = TRUE) %>%
+    filter(!str_detect(word, "[0-9]")) 
+
+blogs_count_2gram <- blogs_2gram %>%
+    count(word, sort = TRUE)
+
+blogs_count_3gram <- blogs_3gram %>%
     count(word, sort = TRUE)
 
 blogs_count %>%
@@ -34,6 +40,16 @@ blogs_count %>%
 
 blogs_pos <- blogs_count %>%
     left_join(parts_of_speech, by = "word")
+
+blogs_sum_words <- blogs_count %>%
+    mutate(run_total = cumsum(n))
+
+blogs_50p <- blogs_sum_words %>%
+    filter(run_total <= 0.5 * nrow(blogs_tokens))
+
+blogs_90p <- blogs_sum_words %>%
+    filter(run_total <= 0.9 * nrow(blogs_tokens))
+
 
 # length(blogs)
 # nchar(blogs)
