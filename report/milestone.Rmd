@@ -3,7 +3,11 @@ title: "Capstone Project"
 subtitle: "Milestone Report"
 author: "Brian Gulbis"
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
-output: html_document
+output: 
+    html_document:
+        toc: true
+        toc_float: true
+        code_fold: hide
 ---
 
 ```{r setup, include=FALSE}
