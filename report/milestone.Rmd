@@ -1,0 +1,12 @@
+---
+title: "Capstone Project"
+subtitle: "Milestone Report"
+author: "Brian Gulbis"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
