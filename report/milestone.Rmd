@@ -10,3 +10,272 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Introduction
+
+## Exploratory Analysis
+
+```{r, message=FALSE}
+library(tidyverse)
+library(tidytext)
+library(stringr)
+library(forcats)
+library(wordcloud)
+```
+
+```{r functions}
+make_tokens <- function(df) {
+    df %>%
+        unnest_tokens(word, value) %>%
+        anti_join(profanity, by = c("word" = "value")) %>%
+        filter(!str_detect(word, "[[:digit:]]"))
+}
+
+filter_instances <- function(df, perc, val) {
+    df %>%
+        filter(run_total <= perc * val)
+}
+
+make_ngram <- function(df, n) {
+    sep_cols <- c("first", "second")
+    if (n == 3) sep_cols <- c(sep_cols, "third")
+    
+    x <- df %>%
+        unnest_tokens(word, value, token = "ngrams", n = n, collapse = FALSE) %>%
+        separate(word, sep_cols, sep = " ", remove = FALSE) %>%
+        anti_join(profanity, by = c("first" = "value")) %>%
+        anti_join(profanity, by = c("second" = "value")) 
+    
+    if (n == 3) x <- anti_join(x, profanity, by = c("third" = "value"))
+    
+    filter(x, !str_detect(word, "[[:digit:]]"))
+}
+
+```
+
+
+```{r}
+profanity <- read_lines("../data/external/profanity.txt") %>%
+    as_tibble()
+```
+
+```{r}
+blogs <- read_lines("../data/raw/en_US.blogs.txt.gz") %>%
+    as_tibble() %>%
+    mutate(num_char = nchar(value))
+
+news <- read_lines("../data/raw/en_US.news.txt.gz") %>%
+    as_tibble() %>%
+    mutate(num_char = nchar(value))
+
+tweets <- read_lines("../data/raw/en_US.twitter.txt.gz") %>%
+    as_tibble() %>%
+    mutate(num_char = nchar(value))
+```
+
+### Summary of Data Sets
+
+```{r}
+num_char <- bind_rows(tidy(summary(blogs$num_char)),
+               tidy(summary(news$num_char)),
+               tidy(summary(tweets$num_char)))
+
+df <- data_frame(`Data Set` = c("blogs", "news", "tweets"), 
+                 `Lines #` = c(nrow(blogs), nrow(news), nrow(tweets))) %>%
+    bind_cols(num_char) %>%
+    rename(`Min # Characters` = minimum,
+           `First Quantile` = q1,
+           `Median # Characters` = median,
+           `Mean # Characters` = mean,
+           `Third Quantile` = q3,
+           `Max # Characters` = maximum)
+
+knitr::kable(df)
+```
+
+### Exploring Word Counts
+
+* Remove profanity words
+* Remove any numbers
+
+```{r}
+blogs_tokens <- make_tokens(blogs["value"])
+news_tokens <- make_tokens(news["value"])
+tweets_tokens <- make_tokens(tweets["value"])
+
+blogs_unique <- count(blogs_tokens, word, sort = TRUE)
+news_unique <-  count(news_tokens, word, sort = TRUE)
+tweets_unique <-  count(tweets_tokens, word, sort = TRUE)
+
+df <- data_frame(`Data Set` = c("blogs", "news", "tweets"), 
+                 `Word Instances` = c(nrow(blogs_tokens), nrow(news_tokens), nrow(tweets_tokens)),
+                 `Unique Words` = c(nrow(blogs_unique), nrow(news_unique), nrow(tweets_unique)))
+
+knitr::kable(df)
+```
+
+```{r}
+blogs_sum_words <-  mutate(blogs_unique, run_total = cumsum(n))
+blogs_50p <- filter_instances(blogs_sum_words, 0.5, nrow(blogs_tokens))
+blogs_90p <- filter_instances(blogs_sum_words, 0.9, nrow(blogs_tokens))
+
+news_sum_words <-  mutate(news_unique, run_total = cumsum(n))
+news_50p <- filter_instances(news_sum_words, 0.5, nrow(news_tokens))
+news_90p <- filter_instances(news_sum_words, 0.9, nrow(news_tokens))
+
+tweets_sum_words <-  mutate(tweets_unique, run_total = cumsum(n))
+tweets_50p <- filter_instances(tweets_sum_words, 0.5, nrow(tweets_tokens))
+tweets_90p <- filter_instances(tweets_sum_words, 0.9, nrow(tweets_tokens))
+
+df <- data_frame(`Data Set` = c("blogs", "news", "tweets"),
+                 `Words in 50% of Instances` = c(nrow(blogs_50p), nrow(news_50p), nrow(tweets_50p)),
+                 `Words in 90% of Instances` = c(nrow(blogs_90p), nrow(news_90p), nrow(tweets_90p)))
+
+knitr::kable(df)
+```
+
+
+
+```{r}
+set.seed(77123)
+blogs_sample <- sample_frac(blogs["value"], 0.2) 
+
+set.seed(77123)
+news_sample <- sample_frac(news["value"], 0.2) 
+
+set.seed(77123)
+tweets_sample <-  sample_frac(tweets["value"], 0.2) 
+```
+
+```{r}
+blogs_tokens_sample <- make_tokens(blogs_sample)
+news_tokens_sample <- make_tokens(news_sample)
+tweets_tokens_sample <- make_tokens(tweets_sample)
+```
+
+```{r}
+blogs_sample_unique <- count(blogs_tokens_sample, word, sort = TRUE)
+news_sample_unique <- count(news_tokens_sample, word, sort = TRUE)
+tweets_sample_unique <- count(tweets_tokens_sample, word, sort = TRUE)
+```
+
+```{r}
+blogs_sample_unique %>%
+    with(wordcloud(word, n, max.words = 250))
+```
+
+```{r}
+blogs_sample_unique %>%
+    top_n(25, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity")
+```
+
+```{r}
+news_sample_unique %>%
+    with(wordcloud(word, n, max.words = 250))
+```
+
+```{r}
+news_sample_unique %>%
+    top_n(25, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity")
+```
+
+```{r}
+tweets_sample_unique %>%
+    with(wordcloud(word, n, max.words = 250))
+```
+
+```{r}
+tweets_sample_unique %>%
+    top_n(25, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity")
+```
+
+### N-Gram Phrases
+
+```{r}
+blogs_2gram <- make_ngram(blogs_sample, 2)
+blogs_3gram <- make_ngram(blogs_sample, 3)
+
+news_2gram <- make_ngram(news_sample, 2)
+news_3gram <- make_ngram(news_sample, 3)
+
+tweets_2gram <- make_ngram(tweets_sample, 2)
+tweets_3gram <- make_ngram(tweets_sample, 3)
+```
+
+```{r}
+blogs_2gram_unique <- count(blogs_2gram, word, sort = TRUE)
+blogs_3gram_unique <- count(blogs_3gram, word, sort = TRUE)
+
+news_2gram_unique <- count(news_2gram, word, sort = TRUE)
+news_3gram_unique <- count(news_3gram, word, sort = TRUE)
+
+tweets_2gram_unique <- count(tweets_2gram, word, sort = TRUE)
+tweets_3gram_unique <- count(tweets_3gram, word, sort = TRUE)
+```
+
+```{r}
+blogs_2gram_unique %>%
+    top_n(25, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+blogs_3gram_unique %>%
+    top_n(25, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+news_2gram_unique %>%
+    top_n(25, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+news_3gram_unique %>%
+    top_n(25, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+tweets_2gram_unique %>%
+    top_n(25, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+tweets_3gram_unique %>%
+    top_n(25, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+## Prediction Algorithm Design
+
+* Synsets, hypernyms to find related words
