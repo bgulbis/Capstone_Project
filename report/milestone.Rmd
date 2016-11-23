@@ -32,7 +32,11 @@ The goal of this milestone report was to explore the three data sets in the HC C
 
 The data do contain some words which are considered profanity which should not be included in the prediction model. A [list of profane words](https://gist.github.com/jamiew/1112488) compiled by Google was used to identify words for exclusion from the data set.
 
+Throughout the report, click on the `Code` button to view the raw R code.
+
 ## Exploratory Analysis
+
+The exploratory analysis utilized the R package `tidytext` to perform text mining, along with the `tidyverse` packages for data manipulation.
 
 ```{r, message=FALSE}
 library(tidyverse)
@@ -75,9 +79,7 @@ make_ngram <- function(df, n) {
 ```{r}
 profanity <- read_lines("../data/external/profanity.txt") %>%
     as_tibble()
-```
 
-```{r}
 blogs <- read_lines("../data/raw/en_US.blogs.txt.gz") %>%
     as_tibble() %>%
     mutate(num_char = nchar(value))
@@ -92,6 +94,8 @@ tweets <- read_lines("../data/raw/en_US.twitter.txt.gz") %>%
 ```
 
 ### Summary of Data Sets
+
+The following table provides a basic overview of the three data sets contained in the HC Corpora, including the number of lines of data in each set, and summary statistics for the number of characters per line in each set. Unsurprising, the blogs and news data sets have a much larger mean number of characters per line compared with the Twitter set, where tweets are limited to maximum of 140 characters.
 
 ```{r}
 num_char <- bind_rows(tidy(summary(blogs$num_char)),
@@ -108,13 +112,12 @@ df <- data_frame(`Data Set` = c("blogs", "news", "tweets"),
            `Third Quantile` = q3,
            `Max # Characters` = maximum)
 
-knitr::kable(df)
+knitr::kable(df, format.args = list(big.mark = ","))
 ```
 
 ### Exploring Word Counts
 
-* Remove profanity words
-* Remove any numbers
+The next table provides a summary of the number of word instances contained in each set, as well as the number of unique words. It should be noted that prior to calculating the number of word instances, words considered profanity as well as words containing numeric digits were removed.
 
 ```{r}
 blogs_tokens <- make_tokens(blogs["value"])
@@ -129,8 +132,10 @@ df <- data_frame(`Data Set` = c("blogs", "news", "tweets"),
                  `Word Instances` = c(nrow(blogs_tokens), nrow(news_tokens), nrow(tweets_tokens)),
                  `Unique Words` = c(nrow(blogs_unique), nrow(news_unique), nrow(tweets_unique)))
 
-knitr::kable(df)
+knitr::kable(df, format.args = list(big.mark = ","))
 ```
+
+In each set, the number of words which make up 50% and 90% of the total word instances was calculated. This demonstrates that a small number of words make up the majority of word instances. 
 
 ```{r}
 blogs_sum_words <-  mutate(blogs_unique, run_total = cumsum(n))
@@ -149,20 +154,18 @@ df <- data_frame(`Data Set` = c("blogs", "news", "tweets"),
                  `Words in 50% of Instances` = c(nrow(blogs_50p), nrow(news_50p), nrow(tweets_50p)),
                  `Words in 90% of Instances` = c(nrow(blogs_90p), nrow(news_90p), nrow(tweets_90p)))
 
-knitr::kable(df)
+knitr::kable(df, format.args = list(big.mark = ","))
 ```
 
-
-
 ```{r}
-set.seed(77123)
-blogs_sample <- sample_frac(blogs["value"], 0.2) 
+rm(blogs_tokens, news_tokens, tweets_tokens)
+
+frac <- 0.2
 
 set.seed(77123)
-news_sample <- sample_frac(news["value"], 0.2) 
-
-set.seed(77123)
-tweets_sample <-  sample_frac(tweets["value"], 0.2) 
+blogs_sample <- sample_frac(blogs["value"], frac) 
+news_sample <- sample_frac(news["value"], frac) 
+tweets_sample <-  sample_frac(tweets["value"], frac) 
 ```
 
 ```{r}
@@ -177,17 +180,21 @@ news_sample_unique <- count(news_tokens_sample, word, sort = TRUE)
 tweets_sample_unique <- count(tweets_tokens_sample, word, sort = TRUE)
 ```
 
+Using a sample of 20% of the total data, we can visualize the top 250 unique words in each data set as a word cloud. Words in the word cloud are sized based on their frequency within the data set.
+
 ```{r}
 blogs_sample_unique %>%
     with(wordcloud(word, n, max.words = 250))
 ```
 
+We can further explore the top 25 most frequent words in a bar graph, which allows us to more accurately compare the relative frequency of each word. 
 ```{r}
 blogs_sample_unique %>%
     top_n(25, n) %>%
     dmap_at("word", fct_inorder) %>%
     ggplot(aes(x = word, y = n)) +
-    geom_bar(stat = "identity")
+    geom_bar(stat = "identity") +
+    ggtitle("Frequency of Top 25 Words in the Blogs Data Set")
 ```
 
 ```{r}
@@ -200,7 +207,8 @@ news_sample_unique %>%
     top_n(25, n) %>%
     dmap_at("word", fct_inorder) %>%
     ggplot(aes(x = word, y = n)) +
-    geom_bar(stat = "identity")
+    geom_bar(stat = "identity") +
+    ggtitle("Frequency of Top 25 Words in the News Data Set")
 ```
 
 ```{r}
@@ -213,12 +221,17 @@ tweets_sample_unique %>%
     top_n(25, n) %>%
     dmap_at("word", fct_inorder) %>%
     ggplot(aes(x = word, y = n)) +
-    geom_bar(stat = "identity")
+    geom_bar(stat = "identity") +
+    ggtitle("Frequency of Top 25 Words in the Twitter Data Set")
 ```
 
 ### N-Gram Phrases
 
+Next, 2-word pairs and 3-word phrases are created using the n-gram method. These will be used in the prediction model to predict what the next word will be based upon the current word being typed. 
+
 ```{r}
+rm(blogs, news, tweets)
+
 blogs_2gram <- make_ngram(blogs_sample, 2)
 blogs_3gram <- make_ngram(blogs_sample, 3)
 
@@ -240,21 +253,27 @@ tweets_2gram_unique <- count(tweets_2gram, word, sort = TRUE)
 tweets_3gram_unique <- count(tweets_3gram, word, sort = TRUE)
 ```
 
+A summary of the number of the word-pair/word-phrase instances and unique word-pairs/word-phrases contained in the data sample is presented in the table below.
+
+```{r}
+df <- data_frame(`Data Set` = c("blogs", "news", "tweets"),
+                 `Two-Word Pairs` = c(nrow(blogs_2gram), nrow(news_2gram), nrow(tweets_2gram)),
+                 `Unique Two-Word Pairs` = c(nrow(blogs_2gram_unique), nrow(news_2gram_unique), nrow(tweets_2gram_unique)),
+                 `Three-Word Phrases` = c(nrow(blogs_3gram), nrow(news_3gram), nrow(tweets_3gram)),
+                 `Unique Three-Word Phrases` = c(nrow(blogs_3gram_unique), nrow(news_3gram_unique), nrow(tweets_3gram_unique)))
+
+knitr::kable(df, format.args = list(big.mark = ","))
+```
+
+The frequency of the top 25 2-word pairs in each data set are displayed below. Interestingly, the top 4 word-pairs are the same in the blogs and news sets, while the Twitter set contains similar phrases but in a different order.
+
 ```{r}
 blogs_2gram_unique %>%
     top_n(25, n) %>%
     dmap_at("word", fct_inorder) %>%
     ggplot(aes(x = word, y = n)) +
     geom_bar(stat = "identity") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-```{r}
-blogs_3gram_unique %>%
-    top_n(25, n) %>%
-    dmap_at("word", fct_inorder) %>%
-    ggplot(aes(x = word, y = n)) +
-    geom_bar(stat = "identity") +
+    ggtitle("Frequency of Top 25 2-Word Pairs in Blogs Data Set") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
@@ -264,15 +283,7 @@ news_2gram_unique %>%
     dmap_at("word", fct_inorder) %>%
     ggplot(aes(x = word, y = n)) +
     geom_bar(stat = "identity") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-```{r}
-news_3gram_unique %>%
-    top_n(25, n) %>%
-    dmap_at("word", fct_inorder) %>%
-    ggplot(aes(x = word, y = n)) +
-    geom_bar(stat = "identity") +
+    ggtitle("Frequency of Top 25 2-Word Pairs in News Data Set") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
@@ -282,6 +293,29 @@ tweets_2gram_unique %>%
     dmap_at("word", fct_inorder) %>%
     ggplot(aes(x = word, y = n)) +
     geom_bar(stat = "identity") +
+    ggtitle("Frequency of Top 25 2-Word Pairs in Twitter Data Set") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+The top 25 three-word phrases in each set are presented below. The top 3 phrases are the same in the blogs and news sets, however, the top phrases in the Twitter set vary considerably.
+
+```{r}
+blogs_3gram_unique %>%
+    top_n(25, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    ggtitle("Frequency of Top 25 3-Word Phrases in Blogs Data Set") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+news_3gram_unique %>%
+    top_n(25, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    ggtitle("Frequency of Top 25 3-Word Phrases in News Data Set") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
@@ -291,10 +325,9 @@ tweets_3gram_unique %>%
     dmap_at("word", fct_inorder) %>%
     ggplot(aes(x = word, y = n)) +
     geom_bar(stat = "identity") +
+    ggtitle("Frequency of Top 25 3-Word Phrases in Twitter Data Set") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
-
-
 
 ## Prediction Algorithm Design
 
