@@ -30,6 +30,8 @@ This is the final project for the Data Science Capstone course. The goal of this
 
 The goal of this milestone report was to explore the three data sets in the HC Corpora. The data were processed using `r R.Version()$version.string`. Due to the size of the data sets, a random sample of 20% of the total data was used to perform most of the exploratory analysis. 
 
+The data do contain some words which are considered profanity which should not be included in the prediction model. A [list of profane words](https://gist.github.com/jamiew/1112488) compiled by Google was used to identify words for exclusion from the data set.
+
 ## Exploratory Analysis
 
 ```{r, message=FALSE}
@@ -67,7 +69,6 @@ make_ngram <- function(df, n) {
     
     filter(x, !str_detect(word, "[[:digit:]]"))
 }
-
 ```
 
 
