@@ -14,7 +14,9 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Abstract
+## Executive Summary
+
+The goal of this project is to build a predictive text model, using the HC Corpora data set. The data are in English and come from three different types of websites: blogs, news, or Twitter. In this milestone report, the data were loaded into `r R.Version()$version.string` and an exploratory analysis was performed.
 
 * Most common word in all three data sets is `the`
 * Followed by `and`, `to`, `a`, `of` in blogs and news; tweets differs
@@ -23,6 +25,10 @@ knitr::opts_chunk$set(echo = TRUE)
 * Blogs and News have a lot of similarities; Twitter differs
 
 ## Introduction
+
+This is the final project for the Data Science Capstone course. The goal of this project is to build a predictive text model, such as those used by smart keyboards on mobile devices. The model will be built using the [HC Corpora](http://www.corpora.heliohost.org/aboutcorpus.html) data set. The data contained in the HC Corpora were obtained from publicly available websites using a web crawler. The data were then divided into three categories based on the type of website: blogs, news, or Twitter. The project will focus on building a predictive text model for the English language. 
+
+The goal of this milestone report was to explore the three data sets in the HC Corpora. The data were processed using `r R.Version()$version.string`. Due to the size of the data sets, a random sample of 20% of the total data was used to perform most of the exploratory analysis. 
 
 ## Exploratory Analysis
 
