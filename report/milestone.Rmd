@@ -331,4 +331,8 @@ tweets_3gram_unique %>%
 
 ## Prediction Algorithm Design
 
-* Synsets, hypernyms to find related words
+These data sets will be used to build a predictive text model. The two-word pairs and three-word phrases will be utilized to predict the next most-likely word based upon the word currently entered. 
+
+Other considerations for the model will include the use of synsets from the WordNet lexical database. These groups of synonms may allow the model to predict additional word possibilities, even for words which are not in the HC Corpora.
+
+The goal will be to create a Shiny app which will take a word and return the three most likely options for the next word. 
