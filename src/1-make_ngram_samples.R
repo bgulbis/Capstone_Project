@@ -61,27 +61,31 @@ tweets_sample <- blogs %>%
     select(value) %>%
     sample_frac(frac) 
 
+sep2 <- c("first", "second")
+sep3 <- c(sep2, "third")
+
 blogs_2gram <- blogs_sample %>%
     make_ngram(2) %>%
-    count(word, sort = TRUE)
+    count(word, first, second, sort = TRUE)
 
 blogs_3gram <- blogs_sample %>%
     make_ngram(3) %>%
-    count(word, sort = TRUE)
+    count(word, first, second, third, sort = TRUE) 
 
 news_2gram <- news_sample %>%
     make_ngram(2) %>%
-    count(word, sort = TRUE)
+    count(word, first, second, sort = TRUE)
 
 news_3gram <- news_sample %>%
     make_ngram(3) %>%
-    count(word, sort = TRUE)
+    count(word, first, second, third, sort = TRUE)
 
 tweets_2gram <- tweets_sample %>%
     make_ngram(2) %>%
-    count(word, sort = TRUE)
+    count(word, first, second, sort = TRUE) 
 
 tweets_3gram <- tweets_sample %>%
     make_ngram(3) %>%
-    count(word, sort = TRUE)
+    count(word, first, second, third, sort = TRUE)
 
+dirr::save_rds("data/tidy", "sample|[2-3]gram")
