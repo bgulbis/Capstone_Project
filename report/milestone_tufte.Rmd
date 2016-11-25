@@ -1,0 +1,382 @@
+---
+title: "Capstone Project"
+subtitle: "Milestone Report"
+author: "Brian Gulbis"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: 
+    tufte::tufte_html: default
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+# invalidate cache when the tufte version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'), echo = FALSE)
+options(htmltools.dir.version = FALSE)
+```
+
+# Executive Summary
+
+`r newthought("The goal of this project")` is to build a predictive text model, using the HC Corpora data set. The data are in English and come from three different types of websites: blogs, news, or Twitter. In this milestone report, the data were loaded into `r R.Version()$version.string` and an exploratory analysis was performed.
+
+* Most common word in all three data sets is `the`
+* Followed by `and`, `to`, `a`, `of` in blogs and news; tweets differs
+* Most common word-pairs: `in the` (all 3), `of the` (blogs and news)
+* Most common 3-gram: `one of the`, `a lot of` (blogs and news)
+* Blogs and News have a lot of similarities; Twitter differs
+
+# Introduction
+
+`r newthought("This is the final project")` for the Data Science Capstone course. The goal of this project is to build a predictive text model, such as those used by smart keyboards on mobile devices. The model will be built using the HC Corpora data set^[[HC Corpora](http://www.corpora.heliohost.org/aboutcorpus.html)]. The data contained in the corpus were obtained from publicly available websites using a web crawler. The data were then divided into three categories based on the type of website: blogs, news, or Twitter (also referred to as tweets). The project will focus on building a predictive text model for the English language. The goal of this milestone report was to explore the three data sets in the corpus.
+
+The data do contain some words which are considered profanity and should not be included in the prediction model. A list of "bad words" compiled by Google^[[List of profane words](https://gist.github.com/jamiew/1112488)] was used to identify words for exclusion from the data set.
+
+**NOTE** The source R code to generate the tables and figures in this report can be found [here](https://github.com/bgulbis/Capstone_Project/report/milestone_tufte.Rmd).
+
+# Exploratory Analysis
+
+`r newthought("The exploratory analysis")` utilized the R package `tidytext` to perform text mining, along with the `tidyverse` packages for data manipulation. The data were processed using `r R.Version()$version.string`.
+
+```{r, message=FALSE}
+library(tidyverse)
+library(tidytext)
+library(stringr)
+library(forcats)
+library(wordcloud)
+```
+
+```{r functions}
+make_tokens <- function(df) {
+    df %>%
+        unnest_tokens(word, value) %>%
+        anti_join(profanity, by = c("word" = "value")) %>%
+        filter(!str_detect(word, "[[:digit:]]"))
+}
+
+filter_instances <- function(df, perc, val) {
+    df %>%
+        filter(run_total <= perc * val)
+}
+
+make_ngram <- function(df, n) {
+    sep_cols <- c("first", "second")
+    if (n == 3) sep_cols <- c(sep_cols, "third")
+    
+    x <- df %>%
+        unnest_tokens(word, value, token = "ngrams", n = n, collapse = FALSE) %>%
+        separate(word, sep_cols, sep = " ", remove = FALSE) %>%
+        anti_join(profanity, by = c("first" = "value")) %>%
+        anti_join(profanity, by = c("second" = "value")) 
+    
+    if (n == 3) x <- anti_join(x, profanity, by = c("third" = "value"))
+    
+    filter(x, !str_detect(word, "[[:digit:]]"))
+}
+```
+
+
+```{r}
+profanity <- read_lines("../data/external/profanity.txt") %>%
+    as_tibble()
+
+blogs <- read_lines("../data/raw/en_US.blogs.txt.gz") %>%
+    as_tibble() %>%
+    mutate(num_char = nchar(value))
+
+news <- read_lines("../data/raw/en_US.news.txt.gz") %>%
+    as_tibble() %>%
+    mutate(num_char = nchar(value))
+
+tweets <- read_lines("../data/raw/en_US.twitter.txt.gz") %>%
+    as_tibble() %>%
+    mutate(num_char = nchar(value))
+```
+
+## Summary of Data Sets
+
+The following table provides a basic overview of the three data sets contained in the HC Corpora, including the number of lines of data in each set, and summary statistics for the number of characters per line in each set. Unsurprising, the blogs and news data sets have a much larger mean number of characters per line compared with the Twitter set, where tweets are limited to maximum of 140 characters.
+
+```{r}
+num_char <- bind_rows(tidy(summary(blogs$num_char)),
+               tidy(summary(news$num_char)),
+               tidy(summary(tweets$num_char)))
+
+df <- data_frame(`Data Set` = c("blogs", "news", "tweets"), 
+                 `Lines` = c(nrow(blogs), nrow(news), nrow(tweets))) %>%
+    bind_cols(num_char) %>%
+    select(-q1, -q3) %>%
+    rename(`Min Chars` = minimum,
+           # `1st Quantile` = q1,
+           `Median Chars` = median,
+           `Mean Chars` = mean,
+           # `3rd Quantile` = q3,
+           `Max Chars` = maximum)
+
+knitr::kable(df, format.args = list(big.mark = ","), caption = "Number of lines and characters in each data set")
+```
+
+## Exploring Word Counts
+
+The next table provides a summary of the number of word instances contained in each set, as well as the number of unique words. It should be noted that prior to calculating the number of word instances, words considered profanity as well as words containing numeric digits were removed.
+
+```{r, cache=TRUE}
+blogs_tokens <- make_tokens(blogs["value"])
+news_tokens <- make_tokens(news["value"])
+tweets_tokens <- make_tokens(tweets["value"])
+
+blogs_unique <- count(blogs_tokens, word, sort = TRUE)
+news_unique <-  count(news_tokens, word, sort = TRUE)
+tweets_unique <-  count(tweets_tokens, word, sort = TRUE)
+```
+
+```{r}
+df <- data_frame(`Data Set` = c("blogs", "news", "tweets"), 
+                 `Word Instances` = c(nrow(blogs_tokens), nrow(news_tokens), nrow(tweets_tokens)),
+                 `Unique Words` = c(nrow(blogs_unique), nrow(news_unique), nrow(tweets_unique)))
+
+knitr::kable(df, format.args = list(big.mark = ","), caption = "Number of word instances and unique words in each data set")
+```
+
+In each set, the number of words which make up 50% and 90% of the total word instances was calculated. This demonstrates that a small number of words make up the majority of word instances. 
+
+```{r}
+blogs_sum_words <-  mutate(blogs_unique, run_total = cumsum(n))
+blogs_50p <- filter_instances(blogs_sum_words, 0.5, nrow(blogs_tokens))
+blogs_90p <- filter_instances(blogs_sum_words, 0.9, nrow(blogs_tokens))
+
+news_sum_words <-  mutate(news_unique, run_total = cumsum(n))
+news_50p <- filter_instances(news_sum_words, 0.5, nrow(news_tokens))
+news_90p <- filter_instances(news_sum_words, 0.9, nrow(news_tokens))
+
+tweets_sum_words <-  mutate(tweets_unique, run_total = cumsum(n))
+tweets_50p <- filter_instances(tweets_sum_words, 0.5, nrow(tweets_tokens))
+tweets_90p <- filter_instances(tweets_sum_words, 0.9, nrow(tweets_tokens))
+
+df <- data_frame(`Data Set` = c("blogs", "news", "tweets"),
+                 `Words in 50% of Instances` = c(nrow(blogs_50p), nrow(news_50p), nrow(tweets_50p)),
+                 `Words in 90% of Instances` = c(nrow(blogs_90p), nrow(news_90p), nrow(tweets_90p)))
+
+knitr::kable(df, format.args = list(big.mark = ","), caption = "Number of words in 50% and 90% of word instances")
+```
+
+## Visualizing the Data
+
+`r margin_note("Given the large size of the data sets, a random sample of 20% of the total data was used to perform most of the exploratory analysis.")`
+
+```{r}
+rm(blogs_tokens, news_tokens, tweets_tokens)
+
+frac <- 0.2
+words <- 100
+top <- 25
+```
+
+```{r, cache=TRUE}
+set.seed(77123)
+blogs_sample <- sample_frac(blogs["value"], frac) 
+news_sample <- sample_frac(news["value"], frac) 
+tweets_sample <-  sample_frac(tweets["value"], frac) 
+
+blogs_tokens_sample <- make_tokens(blogs_sample)
+news_tokens_sample <- make_tokens(news_sample)
+tweets_tokens_sample <- make_tokens(tweets_sample)
+
+blogs_sample_unique <- count(blogs_tokens_sample, word, sort = TRUE)
+news_sample_unique <- count(news_tokens_sample, word, sort = TRUE)
+tweets_sample_unique <- count(tweets_tokens_sample, word, sort = TRUE)
+```
+
+Using a sample of the data, a word cloud can be used to visualize the the top `r words` unique words in the three data sets combined. Words in the word cloud are sized based on their frequency, with more frequent terms appearing in a larger font size. 
+
+```{r, message=FALSE, warning=FALSE, fig.cap="Word cloud for the combined data sets"}
+words_combined <- blogs_sample_unique %>%
+    bind_rows(news_sample_unique) %>%
+    bind_rows(tweets_sample_unique) %>%
+    group_by(word) %>%
+    summarize(n = sum(n)) %>%
+    arrange(desc(n)) 
+
+words_combined %>%
+    with(wordcloud(word, n, max.words = words))
+    # top_n(words, n) %>%
+    # wordcloud2(gridSize = 3, ellipticity = 1, widgetsize = c(400, 400))
+```
+
+Further evaluation of the top `r top` words in the combined data set reveals that the most common word, `the`, is almost twice as common as the second-most frequent word, `to`.  
+
+```{r, fig.cap="Most frequent words in combined data set"}
+words_combined %>%
+    top_n(top, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") + 
+    coord_flip()
+```
+
+```{r}
+b <- blogs_sample_unique %>%
+    top_n(top, n) %>%
+    mutate(set = "blogs")
+
+n <- news_sample_unique %>%
+    top_n(top, n) %>%
+    mutate(set = "news")
+
+t <- tweets_sample_unique %>%
+    top_n(top, n) %>%
+    mutate(set = "tweets")
+```
+
+There appears to be a lot of similarity between the three data sets, with words such as `the`, `to`, `and`, and `a` among the most frequent words in each set.
+
+```{r, fig.cap="Comparison of top words in each data set"}
+bind_rows(b, n) %>%
+    bind_rows(t) %>%
+    group_by(set) %>%
+    arrange(desc(n)) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    facet_wrap("set", ncol = 3) +
+    coord_flip() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Word Pairs and Phrases
+
+Next, two-word pairs and three-word phrases are created using the n-gram method. These will be used in the prediction model to predict what the next word will be based upon the current word being typed. 
+
+```{r}
+rm(blogs, news, tweets)
+```
+
+```{r, cache=TRUE}
+blogs_2gram <- make_ngram(blogs_sample, 2)
+blogs_3gram <- make_ngram(blogs_sample, 3)
+
+news_2gram <- make_ngram(news_sample, 2)
+news_3gram <- make_ngram(news_sample, 3)
+
+tweets_2gram <- make_ngram(tweets_sample, 2)
+tweets_3gram <- make_ngram(tweets_sample, 3)
+
+blogs_2gram_unique <- count(blogs_2gram, word, sort = TRUE)
+blogs_3gram_unique <- count(blogs_3gram, word, sort = TRUE)
+
+news_2gram_unique <- count(news_2gram, word, sort = TRUE)
+news_3gram_unique <- count(news_3gram, word, sort = TRUE)
+
+tweets_2gram_unique <- count(tweets_2gram, word, sort = TRUE)
+tweets_3gram_unique <- count(tweets_3gram, word, sort = TRUE)
+```
+
+A summary of the number of the word-pairs and word-phrases contained in the data sample is presented in the table below.
+
+```{r}
+df <- data_frame(`Data Set` = c("blogs", "news", "tweets"),
+                 `Word Pairs` = c(nrow(blogs_2gram), nrow(news_2gram), nrow(tweets_2gram)),
+                 `Unique Pairs` = c(nrow(blogs_2gram_unique), nrow(news_2gram_unique), nrow(tweets_2gram_unique)),
+                 `Word Phrases` = c(nrow(blogs_3gram), nrow(news_3gram), nrow(tweets_3gram)),
+                 `Unique Phrases` = c(nrow(blogs_3gram_unique), nrow(news_3gram_unique), nrow(tweets_3gram_unique)))
+
+knitr::kable(df, format.args = list(big.mark = ","), caption = "Number of two-word pair instances, unique two-word pairs, three-word phrase instances, and unique three-word phrases")
+```
+
+```{r}
+top <- 10
+top2 <- 25
+
+b <- blogs_2gram_unique %>%
+    top_n(top, n) %>%
+    mutate(set = "blogs")
+
+n <- news_2gram_unique %>%
+    top_n(top, n) %>%
+    mutate(set = "news")
+
+t <- tweets_2gram_unique %>%
+    top_n(top, n) %>%
+    mutate(set = "tweets")
+```
+
+The frequency of the top `r top` two-word pairs in each data set are displayed below. Interestingly, the top 4 word pairs are the same in the blogs and news sets, but differ in the Twitter set.
+
+```{r, fig.cap="Comparison of top word pairs in each data set"}
+bind_rows(b, n) %>%
+    bind_rows(t) %>%
+    group_by(set) %>%
+    arrange(desc(n)) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    facet_wrap("set", ncol = 3) +
+    coord_flip() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+When the three data sets are combined, the top `r top2` word pairs are depicted in the figure below.
+
+```{r, fig.cap="Top word pairs in combined data set", cache=TRUE}
+blogs_2gram_unique %>%
+    bind_rows(news_2gram_unique) %>%
+    bind_rows(tweets_2gram_unique) %>%
+    group_by(word) %>%
+    summarize(n = sum(n)) %>%
+    arrange(desc(n)) %>%
+    top_n(top2, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    coord_flip() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+The top three-word phrases in each set are presented in the margin. The top 3 phrases are the same in the blogs and news sets, however, the top phrases in the Twitter set vary considerably.
+
+When the three data sets are combined, the top `r top2` three-word phrases are depicted in the figure below.
+
+```{r}
+b <- blogs_3gram_unique %>%
+    top_n(top, n) %>%
+    mutate(set = "blogs")
+
+n <- news_3gram_unique %>%
+    top_n(top, n) %>%
+    mutate(set = "news")
+
+t <- tweets_3gram_unique %>%
+    top_n(top, n) %>%
+    mutate(set = "tweets")
+```
+
+```{r, fig.cap="Comparison of top word phrases in each data set"}
+bind_rows(b, n) %>%
+    bind_rows(t) %>%
+    group_by(set) %>%
+    arrange(desc(n)) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    facet_wrap("set", nrow = 3) +
+    coord_flip() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r, fig.cap="Top word phrases in combined data set", cache=TRUE}
+blogs_3gram_unique %>%
+    bind_rows(news_3gram_unique) %>%
+    bind_rows(tweets_3gram_unique) %>%
+    group_by(word) %>%
+    summarize(n = sum(n)) %>%
+    arrange(desc(n)) %>%
+    top_n(top2, n) %>%
+    dmap_at("word", fct_inorder) %>%
+    ggplot(aes(x = word, y = n)) +
+    geom_bar(stat = "identity") +
+    coord_flip() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+# Conclusion and Next Steps
+
+`r newthought("The next setp")` will be to build a predictive text model using these data sets. The two-word pairs and three-word phrases will be utilized to predict the next most-likely word based upon the word currently entered. 
+
+Other considerations for the model will include the use of synsets from the WordNet lexical database. These groups of synonms may allow the model to predict additional word possibilities, even for words which are not in the HC Corpora.
+
+The goal will be to create a Shiny app which will take a word and return the three most likely options for the next word. 
