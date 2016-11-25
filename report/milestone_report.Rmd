@@ -98,7 +98,7 @@ tweets <- read_lines("../data/raw/en_US.twitter.txt.gz") %>%
 
 ## Summary of Data Sets
 
-The following table provides a basic overview of the three data sets contained in the HC Corpora, including the number of lines of data in each set, and summary statistics for the number of characters per line in each set. Unsurprising, the blogs and news data sets have a much larger mean number of characters per line compared with the Twitter set, where tweets are limited to maximum of 140 characters.
+The following table provides a basic overview of the three data sets contained in the HC Corpora, including the number of lines of data in each set, and summary statistics for the number of characters per line in each set. Unsurprising, the blogs and news data sets have a much larger mean number of characters per line compared with the Twitter set, where tweets are limited to a maximum of 140 characters.
 
 ```{r}
 num_char <- bind_rows(tidy(summary(blogs$num_char)),
@@ -214,7 +214,8 @@ words_combined %>%
     dmap_at("word", fct_inorder) %>%
     ggplot(aes(x = word, y = n)) +
     geom_bar(stat = "identity") + 
-    coord_flip()
+    coord_flip() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 ```{r}
