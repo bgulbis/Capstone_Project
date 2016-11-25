@@ -35,7 +35,7 @@ The next step in the project will be to build an initial predictive model. This 
 
 The data do contain some words which are considered profanity and should not be included in the prediction model. A list of "bad words" compiled by Google^[[List of profane words](https://gist.github.com/jamiew/1112488)] was used to identify words for exclusion from the data set.
 
-**NOTE:** The source R code to generate the tables and figures in this report can be found [here](https://github.com/bgulbis/Capstone_Project/report/milestone_report.Rmd).
+**NOTE:** The source R code to generate the tables and figures in this report can be found [here](https://github.com/bgulbis/Capstone_Project/blob/master/report/milestone_report.Rmd).
 
 # Exploratory Analysis
 
