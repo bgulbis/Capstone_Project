@@ -31,18 +31,18 @@ make_ngram <- function(df, n) {
     filter(x, !str_detect(word, "[[:digit:]]"))
 }
 
-profanity <- read_lines("../data/external/profanity.txt") %>%
+profanity <- read_lines("data/external/profanity.txt") %>%
     as_tibble()
 
-blogs <- read_lines("../data/raw/en_US.blogs.txt.gz") %>%
+blogs <- read_lines("data/raw/en_US.blogs.txt.gz") %>%
     as_tibble() %>%
     mutate(num_char = nchar(value))
 
-news <- read_lines("../data/raw/en_US.news.txt.gz") %>%
+news <- read_lines("data/raw/en_US.news.txt.gz") %>%
     as_tibble() %>%
     mutate(num_char = nchar(value))
 
-tweets <- read_lines("../data/raw/en_US.twitter.txt.gz") %>%
+tweets <- read_lines("data/raw/en_US.twitter.txt.gz") %>%
     as_tibble() %>%
     mutate(num_char = nchar(value))
 
