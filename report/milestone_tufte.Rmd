@@ -18,19 +18,24 @@ options(htmltools.dir.version = FALSE)
 
 `r newthought("The goal of this project")` is to build a predictive text model, using the HC Corpora data set. The data are in English and come from three different types of websites: blogs, news, or Twitter. In this milestone report, the data were loaded into `r R.Version()$version.string` and an exploratory analysis was performed.
 
-* Most common word in all three data sets is `the`
-* Followed by `and`, `to`, `a`, `of` in blogs and news; tweets differs
-* Most common word-pairs: `in the` (all 3), `of the` (blogs and news)
-* Most common 3-gram: `one of the`, `a lot of` (blogs and news)
-* Blogs and News have a lot of similarities; Twitter differs
+A few of the interesting findings from the exploratory analysis include:
+
+* The most common word in all three data sets is `the`, followed by `to`, `and`, `a`, `of` 
+* The most common two-word pairs are `of the` and `in the`
+* The top five two-word pairs all contain `the`
+* The most common three-word phrases in the Blogs and News sets are `one of the` and `a lot of`, while `thanks for the` is the most common phrase in the Twitter set
+
+Overall, there appears to be a lot of similarity in the word phrases contained in the Blogs and News sets, while the Twitter set has more variation. This is not entirely surprising, given the 140 character limit on tweets. 
+
+The next step in the project will be to build an initial predictive model. This will be done by using the word pairs and word phrases to predict the three most likely options for the next word.
 
 # Introduction
 
-`r newthought("This is the final project")` for the Data Science Capstone course. The goal of this project is to build a predictive text model, such as those used by smart keyboards on mobile devices. The model will be built using the HC Corpora data set^[[HC Corpora](http://www.corpora.heliohost.org/aboutcorpus.html)]. The data contained in the corpus were obtained from publicly available websites using a web crawler. The data were then divided into three categories based on the type of website: blogs, news, or Twitter (also referred to as tweets). The project will focus on building a predictive text model for the English language. The goal of this milestone report was to explore the three data sets in the corpus.
+`r newthought("This is the final project")` for the Data Science Capstone course. The goal of this project is to build a predictive text model, such as those used by smart keyboards on mobile devices. The model will be built using the HC Corpora data set^[[HC Corpora](http://www.corpora.heliohost.org/aboutcorpus.html)]. The data contained in the corpus were obtained from publicly available websites using a web crawler. The data were then divided into three categories based on the type of website: blogs, news, or Twitter (also referred to as tweets). The project will focus on building a predictive text model for the English language. The goal of this milestone report is to explore the three data sets in the corpus.
 
 The data do contain some words which are considered profanity and should not be included in the prediction model. A list of "bad words" compiled by Google^[[List of profane words](https://gist.github.com/jamiew/1112488)] was used to identify words for exclusion from the data set.
 
-**NOTE** The source R code to generate the tables and figures in this report can be found [here](https://github.com/bgulbis/Capstone_Project/report/milestone_tufte.Rmd).
+**NOTE:** The source R code to generate the tables and figures in this report can be found [here](https://github.com/bgulbis/Capstone_Project/report/milestone_tufte.Rmd).
 
 # Exploratory Analysis
 
@@ -166,7 +171,7 @@ knitr::kable(df, format.args = list(big.mark = ","), caption = "Number of words 
 rm(blogs_tokens, news_tokens, tweets_tokens)
 
 frac <- 0.2
-words <- 100
+words <- 250
 top <- 25
 ```
 
@@ -183,18 +188,18 @@ tweets_tokens_sample <- make_tokens(tweets_sample)
 blogs_sample_unique <- count(blogs_tokens_sample, word, sort = TRUE)
 news_sample_unique <- count(news_tokens_sample, word, sort = TRUE)
 tweets_sample_unique <- count(tweets_tokens_sample, word, sort = TRUE)
-```
 
-Using a sample of the data, a word cloud can be used to visualize the the top `r words` unique words in the three data sets combined. Words in the word cloud are sized based on their frequency, with more frequent terms appearing in a larger font size. 
-
-```{r, message=FALSE, warning=FALSE, fig.cap="Word cloud for the combined data sets"}
 words_combined <- blogs_sample_unique %>%
     bind_rows(news_sample_unique) %>%
     bind_rows(tweets_sample_unique) %>%
     group_by(word) %>%
     summarize(n = sum(n)) %>%
     arrange(desc(n)) 
+```
 
+Using a sample of the data, a word cloud can be used to visualize the the top `r words` unique words in the three data sets combined. Words in the word cloud are sized based on their frequency, with more frequent terms appearing in a larger font size. 
+
+```{r, fig.cap="Word cloud for the combined data sets"}
 words_combined %>%
     with(wordcloud(word, n, max.words = words))
     # top_n(words, n) %>%
@@ -242,7 +247,7 @@ bind_rows(b, n) %>%
 
 ## Word Pairs and Phrases
 
-Next, two-word pairs and three-word phrases are created using the n-gram method. These will be used in the prediction model to predict what the next word will be based upon the current word being typed. 
+Using the data sample for each set, two-word pairs and three-word phrases were created using the n-gram method. These will be used in the prediction model to predict what the next word will be based upon the current word being typed. 
 
 ```{r}
 rm(blogs, news, tweets)
@@ -277,7 +282,7 @@ df <- data_frame(`Data Set` = c("blogs", "news", "tweets"),
                  `Word Phrases` = c(nrow(blogs_3gram), nrow(news_3gram), nrow(tweets_3gram)),
                  `Unique Phrases` = c(nrow(blogs_3gram_unique), nrow(news_3gram_unique), nrow(tweets_3gram_unique)))
 
-knitr::kable(df, format.args = list(big.mark = ","), caption = "Number of two-word pair instances, unique two-word pairs, three-word phrase instances, and unique three-word phrases")
+knitr::kable(df, format.args = list(big.mark = ","), caption = "Number of two-word pairs and three-word phrases in each data set")
 ```
 
 ```{r}
@@ -311,7 +316,7 @@ bind_rows(b, n) %>%
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-When the three data sets are combined, the top `r top2` word pairs are depicted in the figure below.
+When the three data sets are combined, the top `r top2` word pairs are depicted in the figure below. This reveals that the most common word pairs are `of the` and `in the`, while the third most common pair, `to the`, is about half as frequent. Additionally, the top five pairs all contain the most common word, `the`.
 
 ```{r, fig.cap="Top word pairs in combined data set", cache=TRUE}
 blogs_2gram_unique %>%
@@ -328,10 +333,6 @@ blogs_2gram_unique %>%
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-The top three-word phrases in each set are presented in the margin. The top 3 phrases are the same in the blogs and news sets, however, the top phrases in the Twitter set vary considerably.
-
-When the three data sets are combined, the top `r top2` three-word phrases are depicted in the figure below.
-
 ```{r}
 b <- blogs_3gram_unique %>%
     top_n(top, n) %>%
@@ -346,6 +347,8 @@ t <- tweets_3gram_unique %>%
     mutate(set = "tweets")
 ```
 
+The top three-word phrases in each set are presented below. The top three phrases are the same in the blogs and news sets, however, the top phrases in the Twitter set vary considerably.
+
 ```{r, fig.cap="Comparison of top word phrases in each data set"}
 bind_rows(b, n) %>%
     bind_rows(t) %>%
@@ -353,10 +356,12 @@ bind_rows(b, n) %>%
     arrange(desc(n)) %>%
     ggplot(aes(x = word, y = n)) +
     geom_bar(stat = "identity") +
-    facet_wrap("set", nrow = 3) +
+    facet_wrap("set", ncol = 3) +
     coord_flip() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+When the three data sets are combined, the top `r top2` three-word phrases are depicted in the figure below.
 
 ```{r, fig.cap="Top word phrases in combined data set", cache=TRUE}
 blogs_3gram_unique %>%
@@ -373,7 +378,7 @@ blogs_3gram_unique %>%
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-# Conclusion and Next Steps
+# Next Steps
 
 `r newthought("The next setp")` will be to build a predictive text model using these data sets. The two-word pairs and three-word phrases will be utilized to predict the next most-likely word based upon the word currently entered. 
 
