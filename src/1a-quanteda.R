@@ -40,3 +40,19 @@ blogs_3gram_freq <- docfreq(blogs_3gram, scheme = "count") %>%
     separate(trigram, c("first", "second", "third"), sep = " ", remove = FALSE)
 
 blogs_tri_freq <- tibble(tri = table(blogs_3gram_freq$value))
+
+x <- blogs_tokens %>%
+    removeFeatures(profanity) %>%
+    collocations(method = "all", size = 2:3)
+
+y <- blogs_2gram_freq %>%
+    rename(count_bi = value) %>%
+    left_join(blogs_1gram_freq, by = c("first" = "unigram")) %>%
+    mutate(prob_bi = count_bi / value)
+
+z <- blogs_3gram_freq %>%
+    rename(count_tri = value,
+           tri1 = first,
+           tri2 = second) %>%
+    left_join(y, by = c("tri1" = "first", "tri2" = "second")) %>%
+    mutate(prob_tri = count_tri / count_bi)
