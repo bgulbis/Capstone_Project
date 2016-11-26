@@ -1,12 +1,14 @@
 # Initial prediction model
 
 library(tidyverse)
+library(quanteda)
+
 library(stringr)
+library(tm)
 library(tidytext)
 library(caret)
 
-profanity <- read_lines("data/external/profanity.txt") %>%
-    as_tibble()
+profanity <- read_lines("data/external/profanity.txt") 
 
 make_ngram <- function(df) {
     df %>%
@@ -23,6 +25,22 @@ frac <- 0.01
 
 set.seed(77123)
 blogs <- read_lines("data/raw/en_US.blogs.txt.gz") %>%
+    as_tibble() %>%
+    sample_frac(frac) 
+
+blogs_corpus <- Corpus(VectorSource(blogs$value)) %>%
+    tm_map(content_transformer(function(y) iconv(y, from = "latin1", to = "ASCII", sub = " "))) %>%
+    tm_map(content_transformer(tolower)) %>%
+    tm_map(removeWords, profanity) %>%
+    tm_map(removePunctuation) %>%
+    tm_map(removeNumbers) %>%
+    tm_map(stripWhitespace) %>%
+    tidy() %>%
+    unnest_tokens(phrase, text, token = "ngrams", n = 3, collapse = FALSE) %>%
+    separate(phrase, c("first", "second", "third"), sep = " ")
+    
+blogs_tidy <- tidy(blogs_corpus)
+
     as_tibble() %>%
     sample_frac(frac) %>%
     make_ngram()
@@ -45,9 +63,9 @@ words <- bind_rows(blogs, news) %>%
 pval = 0.7
 
 set.seed(77123)
-words_part <- createDataPartition(words$third, p = pval, list = FALSE)
-words_temp <- words[words_part, ]
-words_test <- words[-words_part, ]
+words_part <- createDataPartition(blogs_corpus$third, p = pval, list = FALSE)
+words_temp <- blogs_corpus[words_part, ]
+words_test <- blogs_corpus[-words_part, ]
 
 set.seed(77123)
 words_part2 <- createDataPartition(words_temp$third, p = pval, list = FALSE)
