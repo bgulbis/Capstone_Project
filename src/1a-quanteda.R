@@ -57,11 +57,11 @@ calc_mle <- function(x, y = NULL, n = 1L) {
 }
 
 calc_discount <- function(r, m, n) {
-    if_else(r > 0 & r <= 5, ((r + 1) / r) * (n / m), 0) 
+    if_else(r > 0 & r <= 5, ((r + 1) / r) * (n / m), 1) 
 }
 
-calc_prob_remain <- function(freq, disc, all_freq) {
-    1 - sum((disc * freq) / all_freq)
+calc_prob_remain <- function(disc, mle) {
+    1 - sum(disc * mle)
 }
 
 # read data --------------------------------------------
@@ -126,20 +126,22 @@ gt_freq <- full_join(gt_1gram, gt_2gram, by = "Var1") %>%
 
 words_1gram_gt <- words_1gram %>%
     left_join(gt_freq, by = c("count1" = "count")) %>%
-    mutate(discount = calc_discount(count1, uni, uni_next)) 
+    mutate(discount = calc_discount(count1, uni, uni_next)) %>%
+    group_by(word1) %>%
+    mutate(remain = calc_prob_remain(discount, mle1))
 
 words_2gram_gt <- words_2gram %>%
     left_join(gt_freq, by = c("count2" = "count")) %>%
     mutate(discount = calc_discount(count2, bi, bi_next)) %>%
     group_by(word1) %>%
-    mutate(remain = calc_prob_remain(count2, discount, sum(count2)))
+    mutate(remain = calc_prob_remain(discount, mle2))
 
 words_3gram_gt <- words_3gram %>%
     left_join(gt_freq, by = c("count3" = "count")) %>%
     mutate(discount = calc_discount(count3, tri, tri_next)) %>%
     group_by(word1, word2) %>%
-    mutate(remain = calc_prob_remain(count3, discount, sum(count3)))
+    mutate(remain = calc_prob_remain(discount, mle3))
     
-write_rds(words_1gram_gt, "data/final/initial_prediction_1gram_gt.Rds")
-write_rds(words_2gram_gt, "data/final/initial_prediction_2gram_gt.Rds")
-write_rds(words_3gram_gt, "data/final/initial_prediction_3gram_gt.Rds")
+write_rds(words_1gram_gt, "data/final/pred_1gram_gt.Rds")
+write_rds(words_2gram_gt, "data/final/pred_2gram_gt.Rds")
+write_rds(words_3gram_gt, "data/final/pred_3gram_gt.Rds")
