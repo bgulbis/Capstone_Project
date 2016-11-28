@@ -68,7 +68,7 @@ calc_prob_remain <- function(disc, mle) {
 
 profanity <- read_lines("data/external/profanity.txt") 
 
-size = 1000
+size = 50000
 
 set.seed(77123)
 blogs <- read_lines("data/raw/en_US.blogs.txt.gz") %>%
