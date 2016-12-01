@@ -143,6 +143,6 @@ words_3gram_gt <- words_3gram %>%
     group_by(word1, word2) %>%
     mutate(remain = calc_prob_remain(discount, mle3))
     
-write_rds(words_1gram_gt, "data/final/pred_1gram_gt.Rds")
-write_rds(words_2gram_gt, "data/final/pred_2gram_gt.Rds")
-write_rds(words_3gram_gt, "data/final/pred_3gram_gt.Rds")
+write_rds(words_1gram_gt, "data/final/skip_1gram_gt.Rds")
+write_rds(words_2gram_gt, "data/final/skip_2gram_gt.Rds")
+write_rds(words_3gram_gt, "data/final/skip_3gram_gt.Rds")
