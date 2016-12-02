@@ -37,7 +37,7 @@ words <- c(blogs, news, tweets) %>%
 
 write_lines(words, "data/tidy/test_word2vec.txt")
 
-rm(blogs, news, tweets)
+# rm(blogs, news, tweets)
 
 mod <- train_word2vec("data/tidy/test_word2vec.txt", "data/tidy/vectors.bin", threads = 6, cbow = 1, force = TRUE)
 mod <- read.vectors("data/tidy/vectors.bin")
@@ -51,8 +51,16 @@ nearest_to(mod, mod[[test]])
 # x <- word2phrase("data/tidy/test_word2vec.txt", "data/tidy/word2phrase.txt")
 
 library(text2vec) 
-it_train <- itoken(words, tokenizer = word_tokenizer)
-vocab <- create_vocabulary(it_train) %>%
+
+blogs2<- read_rds("data/tidy/train_blogs.Rds")
+size = 1000
+set.seed(77123)
+words2 <- c(blogs, news, tweets) %>%
+    sample(size = size) %>%
+    tokenize("sentence", simplify = TRUE)
+
+it_train <- itoken(blogs2, tokenizer = word_tokenizer)
+vocab <- create_vocabulary(it_train, stopwords = profanity) %>%
     prune_vocabulary(term_count_min = 5L)
 vectorizer <- vocab_vectorizer(vocab, skip_grams_window = 5L)
 dtm_train <- create_dtm(it_train, vectorizer)
@@ -63,5 +71,4 @@ glv$fit(tcm_train, n_iter = 10)
 
 vect <- glv$get_word_vectors()
 
-library(glmnet)
-data("movie_review")
+
