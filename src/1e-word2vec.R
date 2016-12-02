@@ -52,9 +52,16 @@ nearest_to(mod, mod[[test]])
 
 library(text2vec) 
 it_train <- itoken(words, tokenizer = word_tokenizer)
-vocab <- create_vocabulary(it_train)
-vectorizer <- vocab_vectorizer(vocab)
+vocab <- create_vocabulary(it_train) %>%
+    prune_vocabulary(term_count_min = 5L)
+vectorizer <- vocab_vectorizer(vocab, skip_grams_window = 5L)
 dtm_train <- create_dtm(it_train, vectorizer)
+tcm_train <- create_tcm(it_train, vectorizer)
+
+glv <- GlobalVectors$new(word_vectors_size = 50, vocabulary = vocab, x_max = 10)
+glv$fit(tcm_train, n_iter = 10)
+
+vect <- glv$get_word_vectors()
 
 library(glmnet)
 data("movie_review")
