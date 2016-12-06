@@ -16,26 +16,26 @@ url <- "https://api.projectoxford.ai/text/weblm/v1.0/generateNextWords"
 # order: 1-5, optional
 # maxNumOfCandidatesReturned, default = 5; optional
 
-predict_web <- function(x) {
+predict_web <- function(x, n = 5) {
     words <- str_to_lower(x) %>%
-        word(-4, -1) 
+        word((-1 * (n - 1)), -1) 
     
     r <- POST(url, add_headers(api), 
-              query = list(model = "body", words = words))
+              query = list(model = "body", order = n, words = words))
     
     fromJSON(content(r, "text"))$candidates
 }
 
 cond_url <- "https://api.projectoxford.ai/text/weblm/v1.0/calculateConditionalProbability"
 
-check_prob <- function(x, y) {
+check_prob <- function(x, y, n = 5) {
     words <- str_to_lower(x) %>%
-        word(-4, -1) 
+        word((-1 * (n - 1)), -1) 
 
     z <- map(y, ~ list(words = words, word = .x))
     
     r <- POST(cond_url, add_headers(api), 
-              query = list(model = "body"),
+              query = list(model = "body", order = n),
               body = list(queries = z),
               encode = "json")
     
@@ -46,8 +46,11 @@ x1 <- "When you breathe, I want to be the air for you. I'll be there for you, I'
 y1 <- c("eat", "sleep", "die", "give")
 
 q1 <- check_prob(x1, y1)
+q1
+q1a <- predict_web(x1)
+fromJSON(content(q1a, "text"))
 
-x2 <- predict_web("Guy at my table's wife got up to go to the bathroom and I asked about dessert and he started telling me about his")
+x2 <- predict_web("Guy at my table's wife got up to go to the bathroom and I asked about dessert and he started telling me about his", 4)
 x3 <- predict_web("I'd give anything to see arctic monkeys this")
 x4 <- predict_web("Talking to your mom has the same effect as a hug and helps reduce your")
 x5 <- predict_web("When you were in Holland you were like 1 inch away from me but you hadn't time to take a")
