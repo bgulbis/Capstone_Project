@@ -20,7 +20,7 @@ predict_web <- function(x) {
         word(-4, -1) 
     
     r <- POST(url, add_headers(api), 
-              query = list(model = "body", words = "and a case of"))
+              query = list(model = "body", words = words))
     
     fromJSON(content(r, "text"))$candidates
 }
