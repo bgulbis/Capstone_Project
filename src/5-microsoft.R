@@ -13,5 +13,5 @@ url <- "https://api.projectoxford.ai/text/weblm/v1.0/generateNextWords"
 # order: 1-5, optional
 # maxNumOfCandidatesReturned, default = 5; optional
 
-r <- POST(url, add_headers(api))
+r <- POST(url, add_headers(api), query = list(model = "body", words = "a case of"))
 
