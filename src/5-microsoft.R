@@ -3,6 +3,7 @@
 library(httr)
 library(jsonlite)
 library(stringr)
+library(tidyverse)
 
 # Ocp-Apim-Subscription-Key
 api <- "39b702f50fd04d1f9730243bbbd6e0e8"
@@ -25,7 +26,27 @@ predict_web <- function(x) {
     fromJSON(content(r, "text"))$candidates
 }
 
-x1 <- predict_web("When you breathe, I want to be the air for you. I'll be there for you, I'd live and I'd")
+cond_url <- "https://api.projectoxford.ai/text/weblm/v1.0/calculateConditionalProbability"
+
+check_prob <- function(x, y) {
+    words <- str_to_lower(x) %>%
+        word(-4, -1) 
+
+    z <- map(y, ~ list(words = words, word = .x))
+    
+    r <- POST(cond_url, add_headers(api), 
+              query = list(model = "body"),
+              body = list(queries = z),
+              encode = "json")
+    
+    fromJSON(content(r, "text"))$results
+}
+
+x1 <- "When you breathe, I want to be the air for you. I'll be there for you, I'd live and I'd"
+y1 <- c("eat", "sleep", "die", "give")
+
+q1 <- check_prob(x1, y1)
+
 x2 <- predict_web("Guy at my table's wife got up to go to the bathroom and I asked about dessert and he started telling me about his")
 x3 <- predict_web("I'd give anything to see arctic monkeys this")
 x4 <- predict_web("Talking to your mom has the same effect as a hug and helps reduce your")
