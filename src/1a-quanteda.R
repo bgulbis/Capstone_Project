@@ -18,7 +18,7 @@ make_ngram <- function(x, n = 1L) {
     
     dfm(x, 
         toLower = TRUE, 
-        ignoredFeatures = c(profanity), 
+        ignoredFeatures = c(stopwords("english"), profanity), 
         removeNumbers = TRUE, 
         removePunct = TRUE, 
         removeSeparators = TRUE,
@@ -71,19 +71,19 @@ profanity <- read_lines("data/external/profanity.txt")
 size = 50000
 
 set.seed(77123)
-blogs <- read_lines("data/raw/en_US.blogs.txt.gz") %>%
+blogs <- read_rds("data/tidy/train_blogs.Rds") %>%
     corpus() %>%
     sample(size = size) %>%
     tokenize("sentence", simplify = TRUE)
 
 set.seed(77123)
-news <- read_lines("data/raw/en_US.news.txt.gz") %>%
+news <- read_rds("data/tidy/train_news.Rds") %>%
     corpus() %>%
     sample(size = size) %>%
     tokenize("sentence", simplify = TRUE)
 
 set.seed(77123)
-tweets <- read_lines("data/raw/en_US.twitter.txt.gz") %>%
+tweets <- read_rds("data/tidy/train_tweets.Rds") %>%
     corpus() %>%
     sample(size = size) %>%
     tokenize("sentence", simplify = TRUE)
