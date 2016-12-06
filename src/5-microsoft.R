@@ -44,18 +44,50 @@ check_prob <- function(x, y, n = 5) {
 
 x1 <- "When you breathe, I want to be the air for you. I'll be there for you, I'd live and I'd"
 y1 <- c("eat", "sleep", "die", "give")
+check_prob(x1, y1)
+# die
 
-q1 <- check_prob(x1, y1)
-q1
-q1a <- predict_web(x1)
-fromJSON(content(q1a, "text"))
+x2 <- "Guy at my table's wife got up to go to the bathroom and I asked about dessert and he started telling me about his"
+y2 <- c("spiritual", "horticultural", "marital", "financial")
+check_prob(x2, y2)
+# marital
 
-x2 <- predict_web("Guy at my table's wife got up to go to the bathroom and I asked about dessert and he started telling me about his", 4)
-x3 <- predict_web("I'd give anything to see arctic monkeys this")
-x4 <- predict_web("Talking to your mom has the same effect as a hug and helps reduce your")
-x5 <- predict_web("When you were in Holland you were like 1 inch away from me but you hadn't time to take a")
-x6 <- predict_web("I'd just like all of these questions answered, a presentation of evidence, and a jury to settle the")
-x7 <- predict_web("I can't deal with unsymetrical things. I can't even hold an uneven number of bags of groceries in each")
-x8 <- predict_web("Every inch of you is perfect from the bottom to the")
-x9 <- predict_web("I’m thankful my childhood was filled with imagination and bruises from playing")
-x10 <- predict_web("I like how the same people are in almost all of Adam Sandler's")
+x3 <- "I'd give anything to see arctic monkeys this"
+y3 <- c("decade", "weekend", "morning", "month")
+check_prob(x3, y3)
+# weekend
+
+x4 <- "Talking to your mom has the same effect as a hug and helps reduce your"
+y4 <- c("sleepiness", "stress", "happiness", "hunger")
+check_prob(x4, y4)
+# stress
+
+x5 <- "When you were in Holland you were like 1 inch away from me but you hadn't time to take a"
+y5 <- c("walk", "look", "minute", "picture")
+check_prob(x5, y5)
+# picture
+
+x6 <- "I'd just like all of these questions answered, a presentation of evidence, and a jury to settle the"
+y6 <- c("case", "matter", "incident", "account")
+check_prob(x6, y6)
+# matter
+
+x7 <- "I can't deal with unsymetrical things. I can't even hold an uneven number of bags of groceries in each"
+y7 <- c("finger", "toe", "hand", "arm")
+check_prob(x7, y7)
+# hand
+
+x8 <- "Every inch of you is perfect from the bottom to the"
+y8 <- c("side", "center", "top", "middle")
+check_prob(x8, y8)
+# top
+
+x9 <- "I’m thankful my childhood was filled with imagination and bruises from playing"
+y9 <- c("inside", "outside", "weekly", "daily")
+check_prob(x9, y9)
+# outside
+
+x10 <- "I like how the same people are in almost all of Adam Sandler's"
+y10 <- c("stories", "movies", "novels", "pictures")
+check_prob(x10, y10)
+# movies
