@@ -83,12 +83,10 @@ calc_mle <- function(x, y = NULL, ng = 1L) {
 
     if (ng == 1L) {
         m <- list(~value / sum(value))
-    } else if (ng == 2L) {
-        m <- list(~value / count1)
-    } else if (ng == 3L) {
-        m <- list(~value / count2)
+    } else {
+        m <- list(lazyeval::interp(~ value / cnt, cnt = as.name(paste0("count", ng - 1))))
     }
-    
+
     x <- filter_(x, .dots = list(~n == ng)) %>%
         separate_("ngram", sep_cols, sep = "_")
     
