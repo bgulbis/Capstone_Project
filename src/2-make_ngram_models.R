@@ -128,24 +128,24 @@ gt_freq <- full_join(gt_1gram, gt_2gram, by = "Var1") %>%
            tri_next = if_else(lead(count) == count + 1, lead(tri), 0L)) %>%
     dmap(~ coalesce(.x, 0L)) 
 
-pred_1gram_gt <- words_1gram %>%
-    left_join(gt_freq, by = c("count1" = "count")) %>%
-    mutate(discount = calc_discount(count1, uni, uni_next)) %>%
-    group_by(word1) %>%
-    mutate(remain = calc_prob_remain(discount, mle1))
-
-pred_2gram_gt <- words_2gram %>%
-    left_join(gt_freq, by = c("count2" = "count")) %>%
-    mutate(discount = calc_discount(count2, bi, bi_next)) %>%
-    group_by(word1) %>%
-    mutate(remain = calc_prob_remain(discount, mle2))
-
-pred_3gram_gt <- words_3gram %>%
-    left_join(gt_freq, by = c("count3" = "count")) %>%
-    mutate(discount = calc_discount(count3, tri, tri_next)) %>%
-    group_by(word1, word2) %>%
-    mutate(remain = calc_prob_remain(discount, mle3))
-
-write_rds(pred_1gram_gt, "data/final/pred_1gram_gt.Rds")
-write_rds(pred_2gram_gt, "data/final/pred_2gram_gt.Rds")
-write_rds(pred_3gram_gt, "data/final/pred_3gram_gt.Rds")
+# pred_1gram_gt <- words_1gram %>%
+#     left_join(gt_freq, by = c("count1" = "count")) %>%
+#     mutate(discount = calc_discount(count1, uni, uni_next)) %>%
+#     group_by(word1) %>%
+#     mutate(remain = calc_prob_remain(discount, mle1))
+# 
+# pred_2gram_gt <- words_2gram %>%
+#     left_join(gt_freq, by = c("count2" = "count")) %>%
+#     mutate(discount = calc_discount(count2, bi, bi_next)) %>%
+#     group_by(word1) %>%
+#     mutate(remain = calc_prob_remain(discount, mle2))
+# 
+# pred_3gram_gt <- words_3gram %>%
+#     left_join(gt_freq, by = c("count3" = "count")) %>%
+#     mutate(discount = calc_discount(count3, tri, tri_next)) %>%
+#     group_by(word1, word2) %>%
+#     mutate(remain = calc_prob_remain(discount, mle3))
+# 
+# write_rds(pred_1gram_gt, "data/final/pred_1gram_gt.Rds")
+# write_rds(pred_2gram_gt, "data/final/pred_2gram_gt.Rds")
+# write_rds(pred_3gram_gt, "data/final/pred_3gram_gt.Rds")
