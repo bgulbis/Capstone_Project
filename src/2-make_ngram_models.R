@@ -20,6 +20,30 @@ my_tokenizer <- function(x) {
     )
 }
 
+make_dtm_count <- function(x) {
+    it <- itoken(x, toLower, my_tokenizer)
+    
+    vocab <- create_vocabulary(
+        it, 
+        ngram = c(1L, 3L), 
+        stopwords = profanity
+        # stopwords = c(stopwords("english"), profanity)
+    ) 
+    
+    vect <- vocab_vectorizer(vocab)
+    # vect <- hash_vectorizer(vocab)
+    
+    dtm <- create_dtm(it, vect)
+    
+    weight <- TfIdf$new()
+    dtm2 <- weight$fit_transform(dtm)
+    
+    count_dtm <- ceiling(colSums(dtm2)) %>% 
+        as_tibble() %>%
+        rownames_to_column("ngram") %>%
+        mutate(n = str_count(ngram, "_") + 1) 
+}
+
 calc_discount <- function(r, m, n) {
     if_else(r > 0 & r <= 5, ((r + 1) / r) * (n / m), 1) 
 }
@@ -28,74 +52,60 @@ calc_prob_remain <- function(disc, mle) {
     1 - sum(disc * mle)
 }
 
-size = 1000
+size = 50000
 
-blogs <- read_rds("data/tidy/train_blogs.Rds") %>%
+set.seed(77123)
+tokens_blogs <- read_rds("data/tidy/train_blogs.Rds") %>%
     sample(size) %>%
-    tokenize("sentence", simplify = TRUE, verbose = TRUE)
+    tokenize("sentence", simplify = TRUE, verbose = TRUE) %>%
+    make_dtm_count()
 
-news <- read_rds("data/tidy/train_news.Rds") %>%
+set.seed(77123)
+tokens_news <- read_rds("data/tidy/train_news.Rds") %>%
     sample(size) %>%
-    tokenize("sentence", simplify = TRUE, verbose = TRUE)
+    tokenize("sentence", simplify = TRUE, verbose = TRUE) %>%
+    make_dtm_count()
 
-# tweets <- read_rds("data/tidy/train_tweets.Rds") %>%
-#     sample(size) %>%
-#     tokenize("sentence", simplify = TRUE, verbose = TRUE)
+set.seed(77123)
+tokens_tweets <- read_rds("data/tidy/train_tweets.Rds") %>%
+    sample(size) %>%
+    tokenize("sentence", simplify = TRUE, verbose = TRUE) %>%
+    make_dtm_count()
 
-# corp <- c(blogs, news, tweets)
-corp <- c(blogs, news)
-
-# rm(blogs, news, tweets)
-
-it <- itoken(corp, toLower, my_tokenizer)
-
-vocab <- create_vocabulary(
-    it, 
-    ngram = c(1L, 3L), 
-    stopwords = profanity
-    # stopwords = c(stopwords("english"), profanity)
-) 
-
-prune <- prune_vocabulary(vocab, doc_proportion_min = 0.001, doc_proportion_max = 0.975)
-
-vect <- vocab_vectorizer(prune)
-
-dtm <- create_dtm(it, vect)
-
-weight <- TfIdf$new()
-dtm2 <- weight$fit_transform(dtm)
-
-identical(dtm, dtm2)
-
-count_dtm <- colSums(dtm) %>% 
-    as_tibble() %>%
-    rownames_to_column("ngram") %>%
-    mutate(n = str_count(ngram, "_") + 1) 
-
-count_dtm2 <- colMeans(dtm2) %>% 
-    as_tibble() %>%
-    rownames_to_column("ngram") %>%
-    mutate(n = str_count(ngram, "_") + 1) 
+write_rds(tokens_blogs, "data/final/tokens_blogs.Rds")
+write_rds(tokens_news, "data/final/tokens_news.Rds")
+write_rds(tokens_tweets, "data/final/tokens_tweets.Rds")
 
 
-words_1gram <- count_dtm %>%
-    filter(n == 1) %>%
-    mutate(mle1 = value / sum(value)) %>%
-    select(word1 = ngram, count1 = value, mle1)
+calc_mle <- function(x, y = NULL, ng = 1L) {
+    sep_cols <- map_chr(1:ng, ~paste0("word", .x))
+    join_by <- map_chr(1:(ng - 1), ~paste0("word", .x))
 
-words_2gram <- count_dtm %>%
-    filter(n == 2) %>%
-    separate(ngram, c("word1", "word2"), sep = "_") %>%
-    left_join(words_1gram, by = "word1") %>%
-    mutate(mle2 = value / count1) %>%
-    select(word1, word2, count2 = value, mle2)
+    if (ng == 1L) {
+        m <- list(~value / sum(value))
+    } else if (ng == 2L) {
+        m <- list(~value / count1)
+    } else if (ng == 3L) {
+        m <- list(~value / count2)
+    }
+    
+    x <- filter_(x, .dots = list(~n == ng)) %>%
+        separate_("ngram", sep_cols, sep = "_")
+    
+    if (!is.null(y)) {
+        x <- left_join(x, y, by = join_by)
+    }
+    
+    x %>%
+        mutate_(.dots = set_names(m, "mle")) %>%
+        select_(.dots = c(as.list(sep_cols), list(~value, ~mle))) %>%
+        rename_(.dots = set_names(list(~value, ~mle), list(paste0("count", ng), paste0("mle", ng)))) 
+}
 
-words_3gram <- count_dtm %>%
-    filter(n == 3) %>%
-    separate(ngram, c("word1", "word2", "word3"), sep = "_") %>%
-    left_join(words_2gram, by = c("word1", "word2")) %>%
-    mutate(mle3 = value / count2) %>%
-    select(word1, word2, word3, count3 = value, mle3)
+words_1gram <- calc_mle(tokens_blogs)
+words_2gram <- calc_mle(tokens_blogs, words_1gram, 2L)
+words_3gram <- calc_mle(tokens_blogs, words_2gram, 3L)
+
 
 # Good-Turing discount ---------------------------------
 gt_1gram <- table(words_1gram$count1) %>%
