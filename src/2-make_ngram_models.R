@@ -39,10 +39,10 @@ make_dtm_count <- function(x) {
     # dtm2 <- weight$fit_transform(dtm)
     
     # count_dtm <- ceiling(colSums(dtm2)) %>% 
-    count_dtm <- colSums(dtm) %>%
+    count_dtm <- colSums(dtm) 
         as_tibble() %>%
         rownames_to_column("ngram") %>%
-        mutate(n = str_count(ngram, "_") + 1) 
+        mutate(n = str_count(ngram, "_") + 1)
 }
 
 size = 50000
