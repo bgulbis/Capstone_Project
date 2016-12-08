@@ -1,6 +1,7 @@
 
 library(tidyverse)
 library(stringr)
+library(data.table)
 
 # prob_df <- read_rds("data/final/initial_prediction.Rds")
 # dirr::get_rds("data/final")
@@ -30,52 +31,27 @@ predict_text <- function(x, corp = "blogs") {
     print(c("Searching by: ", words))
 
     prob <- list.files("data/final", paste0("^pred(.*)", corp), full.names = TRUE) %>%
-        map(read_rds)
+        map(read_rds) %>%
+        map(as.data.table)
     
-    # 
-    # if (corp == "blogs") {
-    #     tokens <- tokens_blogs
-    # } else if (corp == "news") {
-    #     tokens <- tokens_news
-    # } else if (corp == "Twitter") {
-    #     tokens <- tokens_tweets
-    # } else {
-    #     stop("Invalid corpus")
-    # }
-    
-    pred <- prob[[3]] %>%
-        filter(word1 == words[1],
-               word2 == words[2]) %>%
-        mutate(prob = discount * mle3) %>%
-        ungroup() %>%
-        select(word = word3, prob)
+    pred <- prob[[3]][word1 == words[1] & word2 == words[2], .(word = word3, prob = discount * mle3)][order(-prob)][1:5, ]
     
     if (nrow(pred) == 0) {
         print("There were no matching trigrams, searching bigrams")
         
-        pred <- prob[[2]] %>%
-            filter(word1 == words[2]) %>%
-            mutate(est = discount * mle2,
-                   alpha = remain / sum(est),
-                   prob = alpha * est) %>%
-            ungroup() %>%
-            select(word = word2, prob)
+        pred <- prob[[2]][word1 == words[2], .(word = word2, prob = (remain / sum(discount * mle2)) * (discount * mle2))][order(-prob)][1:5, ]
         
         if (nrow(pred) == 0) {
             print("There were no matching bigrams, searching unigrams")
-            pred <- prob[[1]] %>%
-                mutate(est = discount * mle1,
-                       alpha = remain / sum(est),
-                       prob = alpha * est) %>%
-                select(word = word1, prob)
+            
+            pred <- prob[[1]][, .(word = word1, prob = (remain / sum(discount * mle1)) * (discount * mle1))][order(-prob)][1:5, ]
         }
     } 
 
-    arrange(pred, desc(prob)) %>%
-        top_n(3, prob)
+    pred
 }
 
-x1 <- predict_text("The guy in front of me just bought a pound of bacon, a bouquet, and a case of", "news")
+x1 <- predict_text("The guy in front of me just bought a pound of bacon, a bouquet, and a case of", "blogs")
 x2 <- predict_text("You're the reason why I smile everyday. Can you follow me please? It would mean the")
 x3 <- predict_text("Hey sunshine, can you follow me and make me the")
 x4 <- predict_text("Very early observations on the Bills game: Offense still struggling but the")
