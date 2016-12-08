@@ -35,10 +35,11 @@ make_dtm_count <- function(x) {
     
     dtm <- create_dtm(it, vect)
     
-    weight <- TfIdf$new()
-    dtm2 <- weight$fit_transform(dtm)
+    # weight <- TfIdf$new()
+    # dtm2 <- weight$fit_transform(dtm)
     
-    count_dtm <- ceiling(colSums(dtm2)) %>% 
+    # count_dtm <- ceiling(colSums(dtm2)) %>% 
+    count_dtm <- colSums(dtm) %>%
         as_tibble() %>%
         rownames_to_column("ngram") %>%
         mutate(n = str_count(ngram, "_") + 1) 
