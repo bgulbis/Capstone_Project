@@ -2,6 +2,26 @@
 
 library(tidyverse)
 library(stringr)
+# library(data.table)
+# 
+# calc_mle_dt <- function(freq) {
+#     x <- as.data.table(freq, TRUE)
+#     x[, n := str_count(rn, "_") + 1]
+#     x[, c("word1", "word2", "word3") := tstrsplit(rn, "_", fixed = TRUE)]
+#     x[n == 1, mle := freq / sum(freq)]
+#     x[n == 2, cnt := sum(freq), by = word1]
+#     x[n == 3, cnt := sum(freq), by = c("word1", "word2")]
+#     x[n > 1, mle := freq / cnt]
+# }
+# 
+# library(microbenchmark)
+# tokens_blogs <- read_rds("data/final/tokens_blogs2.Rds")
+# microbenchmark(x <- calc_mle_dt(tokens_blogs), times = 5)
+# 
+# tokens <- read_rds("data/final/tokens_blogs.Rds")
+# microbenchmark(y1 <- calc_mle(tokens), times = 5)
+# microbenchmark(y2 <- calc_mle(tokens, y1, 2L), times = 5)
+# microbenchmark(y3 <- calc_mle(tokens, y2, 3L), times = 5)
 
 calc_mle <- function(x, y = NULL, ng = 1L) {
     sep_cols <- map_chr(1:ng, ~paste0("word", .x))
