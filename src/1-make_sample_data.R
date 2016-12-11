@@ -38,14 +38,14 @@ y <- sample.int(length(train_tweets), valid * length(train_tweets))
 valid_tweets <- tweets[y]
 train_tweets <- tweets[-y]
 
-write_rds(train_blogs, "data/tidy/train_blogs.Rds")
-write_rds(train_news, "data/tidy/train_news.Rds")
-write_rds(train_tweets, "data/tidy/train_tweets.Rds")
+write_rds(train_blogs, "data/tidy/train_blogs.Rds", compress = "gz")
+write_rds(train_news, "data/tidy/train_news.Rds", compress = "gz")
+write_rds(train_tweets, "data/tidy/train_tweets.Rds", compress = "gz")
 
-write_rds(valid_blogs, "data/tidy/valid_blogs.Rds")
-write_rds(valid_news, "data/tidy/valid_news.Rds")
-write_rds(valid_tweets, "data/tidy/valid_tweets.Rds")
+write_rds(valid_blogs, "data/tidy/valid_blogs.Rds", compress = "gz")
+write_rds(valid_news, "data/tidy/valid_news.Rds", compress = "gz")
+write_rds(valid_tweets, "data/tidy/valid_tweets.Rds", compress = "gz")
 
-write_rds(test_blogs, "data/final/test_blogs.Rds")
-write_rds(test_news, "data/final/test_news.Rds")
-write_rds(test_tweets, "data/final/test_tweets.Rds")
+write_rds(test_blogs, "data/final/test_blogs.Rds", compress = "gz")
+write_rds(test_news, "data/final/test_news.Rds", compress = "gz")
+write_rds(test_tweets, "data/final/test_tweets.Rds", compress = "gz")
