@@ -36,19 +36,19 @@ make_dtm_count <- function(x, min_ngram = 1L, max_ngram = 3L, term_min = 3L) {
     dtm <- create_dtm(it, vect)
 }
 
-make_token_files <- function(x, y) {
+make_token_files <- function(x, y, uni_min = 5L, bi_min = 3L, tri_min = 2L) {
     sentences <- read_rds(x) %>%
         tokenize("sentence", simplify = TRUE, verbose = TRUE) 
     
-    make_dtm_count(sentences, 1L, 1L, 5L) %>%
+    make_dtm_count(sentences, 1L, 1L, uni_min) %>%
         colSums() %>%
         write_rds(paste0("data/tidy/tokens_", y, "1.Rds"), compress = "gz")
     
-    make_dtm_count(sentences, 2L, 2L, 3L) %>%
+    make_dtm_count(sentences, 2L, 2L, bi_min) %>%
         colSums() %>%
         write_rds(paste0("data/tidy/tokens_", y, "2.Rds"), compress = "gz")
 
-    tokens_blogs3 <- make_dtm_count(sentences_blogs, 3L, 3L, 2L) %>%
+    make_dtm_count(sentences, 3L, 3L, tri_min) %>%
         colSums() %>%
         write_rds(paste0("data/tidy/tokens_", y, "3.Rds"), compress = "gz")
 }
