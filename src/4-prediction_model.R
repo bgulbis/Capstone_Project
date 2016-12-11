@@ -20,7 +20,7 @@
 #     y[[1]][(length(y[[1]]) - (n - 1)):length(y[[1]])]
 # }
 
-predict_text <- function(x, corp = "blogs", return_n = 5) {
+predict_text <- function(x, corp = "blogs", return_n = 5, keep_stop = FALSE) {
     require(tidyverse)
     require(stringr)
     require(data.table)
@@ -40,29 +40,33 @@ predict_text <- function(x, corp = "blogs", return_n = 5) {
     prob <- read_rds(paste0("data/final/pred_3gram_", corp, ".Rds")) %>%
         as.data.table()
     
-    pred <- prob[word1 == words[1] & word2 == words[2], .(word = word3, prob = discount * mle3)][order(-prob)][1:return_n, ]
+    pred <- prob[word1 == words[1] & word2 == words[2], .(word = word3, prob = discount * mle3)][order(-prob)]
     
     if (nrow(pred) == 0) {
         print("There were no matching trigrams, searching bigrams")
         prob <- read_rds(paste0("data/final/pred_2gram_", corp, ".Rds")) %>%
             as.data.table()
-        pred <- prob[word1 == words[2], .(word = word2, prob = (remain / sum(discount * mle2)) * (discount * mle2))][order(-prob)][1:return_n, ]
+        pred <- prob[word1 == words[2], .(word = word2, prob = (remain / sum(discount * mle2)) * (discount * mle2))][order(-prob)]
         
         if (nrow(pred) == 0) {
             print("There were no matching bigrams, searching unigrams")
             prob <- read_rds(paste0("data/final/pred_1gram_", corp, ".Rds")) %>%
                 as.data.table()
-            pred <- prob[, .(word = word1, prob = (remain / sum(discount * mle1)) * (discount * mle1))][order(-prob)][1:return_n, ]
+            pred <- prob[, .(word = word1, prob = (remain / sum(discount * mle1)) * (discount * mle1))][order(-prob)]
         }
     } 
 
-    pred
+    if (!keep_stop) {
+        pred[!(word %in% quanteda::stopwords("english"))]
+    } 
+    
+    pred[1:return_n]
 }
 
 library(microbenchmark)
 microbenchmark(x1 <- predict_text("The guy in front of me just bought a pound of bacon, a bouquet, and a case of", "blogs"), times = 5L)
 
-x2 <- predict_text("You're the reason why I smile everyday. Can you follow me please? It would mean the", "news", 10)
+x2 <- predict_text("You're the reason why I smile everyday. Can you follow me please? It would mean the", "blogs", 10)
 x3 <- predict_text("Hey sunshine, can you follow me and make me the")
 x4 <- predict_text("Very early observations on the Bills game: Offense still struggling but the")
 x5 <- predict_text("Go on a romantic date at the")
