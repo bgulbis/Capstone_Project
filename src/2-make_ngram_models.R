@@ -20,12 +20,12 @@ my_tokenizer <- function(x) {
     )
 }
 
-make_dtm_count <- function(x) {
+make_dtm_count <- function(x, min_ngram = 1L, max_ngram = 3L) {
     it <- itoken(x, toLower, my_tokenizer)
     
     vocab <- create_vocabulary(
         it, 
-        ngram = c(1L, 3L), 
+        ngram = c(min_ngram, max_ngram), 
         stopwords = profanity
         # stopwords = c(stopwords("english"), profanity)
     ) 
