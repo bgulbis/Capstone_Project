@@ -20,7 +20,7 @@ my_tokenizer <- function(x) {
     )
 }
 
-make_dtm_count <- function(x, min_ngram = 1L, max_ngram = 3L) {
+make_dtm_count <- function(x, min_ngram = 1L, max_ngram = 3L, term_min = 3L) {
     it <- itoken(x, toLower, my_tokenizer)
     
     vocab <- create_vocabulary(
@@ -28,43 +28,31 @@ make_dtm_count <- function(x, min_ngram = 1L, max_ngram = 3L) {
         ngram = c(min_ngram, max_ngram), 
         stopwords = profanity
         # stopwords = c(stopwords("english"), profanity)
-    ) 
+    ) %>%
+        prune_vocabulary(term_count_min = term_min)
     
     vect <- vocab_vectorizer(vocab)
-    # vect <- hash_vectorizer(vocab)
-    
+
     dtm <- create_dtm(it, vect)
-    
-    # weight <- TfIdf$new()
-    # dtm2 <- weight$fit_transform(dtm)
-    
-    # count_dtm <- ceiling(colSums(dtm2)) %>% 
-    count_dtm <- colSums(dtm) 
-        as_tibble() %>%
-        rownames_to_column("ngram") %>%
-        mutate(n = str_count(ngram, "_") + 1)
 }
 
-size = 50000
+make_token_files <- function(x, y) {
+    sentences <- read_rds(x) %>%
+        tokenize("sentence", simplify = TRUE, verbose = TRUE) 
+    
+    make_dtm_count(sentences, 1L, 1L, 5L) %>%
+        colSums() %>%
+        write_rds(paste0("data/tidy/tokens_", y, "1.Rds"), compress = "gz")
+    
+    make_dtm_count(sentences, 2L, 2L, 3L) %>%
+        colSums() %>%
+        write_rds(paste0("data/tidy/tokens_", y, "2.Rds"), compress = "gz")
 
-set.seed(77123)
-tokens_blogs <- read_rds("data/tidy/train_blogs.Rds") %>%
-    sample(size) %>%
-    tokenize("sentence", simplify = TRUE, verbose = TRUE) %>%
-    make_dtm_count()
+    tokens_blogs3 <- make_dtm_count(sentences_blogs, 3L, 3L, 2L) %>%
+        colSums() %>%
+        write_rds(paste0("data/tidy/tokens_", y, "3.Rds"), compress = "gz")
+}
 
-set.seed(77123)
-tokens_news <- read_rds("data/tidy/train_news.Rds") %>%
-    sample(size) %>%
-    tokenize("sentence", simplify = TRUE, verbose = TRUE) %>%
-    make_dtm_count()
-
-set.seed(77123)
-tokens_tweets <- read_rds("data/tidy/train_tweets.Rds") %>%
-    sample(size) %>%
-    tokenize("sentence", simplify = TRUE, verbose = TRUE) %>%
-    make_dtm_count()
-
-write_rds(tokens_blogs, "data/final/tokens_blogs.Rds")
-write_rds(tokens_news, "data/final/tokens_news.Rds")
-write_rds(tokens_tweets, "data/final/tokens_tweets.Rds")
+make_token_files("data/tidy/train_blogs.Rds", "blogs")
+make_token_files("data/tidy/train_news.Rds", "news")
+make_token_files("data/tidy/train_tweets.Rds", "tweets")
