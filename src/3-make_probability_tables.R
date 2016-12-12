@@ -67,19 +67,22 @@ make_prob_dt <- function(x, y, z, corp) {
         left_join(gt_freq, by = c("count3" = "count")) %>%
         mutate(discount = calc_discount(count3, tri, tri_next)) %>%
         group_by(word1, word2) %>%
-        mutate(remain = calc_prob_remain(discount, mle3))
+        mutate(remain = calc_prob_remain(discount, mle3)) %>%
+        select(word1, word2, word3, mle3, discount, remain)
     
     pred_2gram <- mle[[2]] %>%
         left_join(gt_freq, by = c("count2" = "count")) %>%
         mutate(discount = calc_discount(count2, bi, bi_next)) %>%
         group_by(word1) %>%
-        mutate(remain = calc_prob_remain(discount, mle2))
+        mutate(remain = calc_prob_remain(discount, mle2)) %>%
+        select(word1, word2, mle2, discount, remain)
     
     pred_1gram <- mle[[1]] %>%
         left_join(gt_freq, by = c("count1" = "count")) %>%
         mutate(discount = calc_discount(count1, uni, uni_next)) %>%
         group_by(word1) %>%
-        mutate(remain = calc_prob_remain(discount, mle1))
+        mutate(remain = calc_prob_remain(discount, mle1)) %>%
+        select(word1, mle1, discount, remain)
 
     write_rds(pred_1gram, paste0("data/final/pred_1gram_", corp, ".Rds"), compress = "gz")
     write_rds(pred_2gram, paste0("data/final/pred_2gram_", corp, ".Rds"), compress = "gz")
