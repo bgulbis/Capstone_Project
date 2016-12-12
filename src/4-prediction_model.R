@@ -1,25 +1,13 @@
-
-# library(tidyverse)
-# library(stringr)
-# library(data.table)
-
-# prob_df <- read_rds("data/final/initial_prediction.Rds")
-# dirr::get_rds("data/final")
-
-# words_compare <- function(x, n = 2) {
-#     y <- quanteda::tokenize(
-#         x,
-#         removeNumbers = TRUE, 
-#         removePunct = TRUE, 
-#         removeSymbols = TRUE, 
-#         removeTwitter = TRUE, 
-#         removeURL = TRUE
-#     ) %>%
-#         quanteda::removeFeatures(c(stopwords("english"), profanity))
-#     
-#     y[[1]][(length(y[[1]]) - (n - 1)):length(y[[1]])]
-# }
-
+#' Predict the next word
+#' 
+#' @param x a character vector, expected to be a sentence
+#' @param corp a character indicating which source to use; valid options are:
+#'   blogs, news, tweets
+#' @param return_n a numeric indicating the number of word predictions to return
+#' @param keep_stop a logical indicating whether stop words should be included
+#'   in results; defaults to FALSE (no stop words)
+#'   
+#' @return a data.table, contains predicted words and calculated probability
 predict_text <- function(x, corp = "blogs", return_n = 5, keep_stop = FALSE) {
     require(tidyverse)
     require(stringr)
@@ -56,9 +44,9 @@ predict_text <- function(x, corp = "blogs", return_n = 5, keep_stop = FALSE) {
         }
     } 
 
-    if (!keep_stop) {
-        pred[!(word %in% quanteda::stopwords("english"))]
-    } 
-    
-    pred[1:return_n]
+    if (keep_stop == FALSE) {
+        pred[!(word %in% quanteda::stopwords("english"))][1:return_n]
+    } else {
+        pred[1:return_n]
+    }
 }
