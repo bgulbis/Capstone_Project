@@ -12,7 +12,7 @@ make_set <- function(x) {
         tokenize(removeNumbers = TRUE, removePunct = TRUE, removeSymbols = TRUE, 
                  removeTwitter = TRUE, removeURL = TRUE)
     
-    drop_sent <- map_lgl(x, ~ length(.x) == 1)
+    drop_sent <- map_lgl(x, ~ length(.x) < 4)
     
     # drop last word from sentence
     sent <- x[!drop_sent] %>%
@@ -24,7 +24,8 @@ make_set <- function(x) {
         map(~ .x[length(.x)]) %>%
         unlist()
 
-    tibble(sentence = sent, word = last)
+    tibble(sentence = sent, word = last) %>%
+        dmap(str_to_lower)
 }
 
 valid_blogs <- read_rds("data/tidy/valid_blogs.Rds") %>%
@@ -36,4 +37,34 @@ valid_news <- read_rds("data/tidy/valid_news.Rds") %>%
 valid_tweets <- read_rds("data/tidy/valid_tweets.Rds") %>%
     make_set()
 
+source("src/4a-prediction_model_feather.R")
 
+# set.seed(77123)
+blogs <- sample_n(valid_blogs, 100) %>%
+    by_row(~ predict_text_feather(.x$sentence, "blogs", 1)$word[1], .to = "pred") %>%
+    mutate_at(vars(pred), funs(comp = . == word)) 
+
+blogs_accuracy <- summarize_at(blogs, vars(comp), funs(sum(., na.rm = TRUE) / length(.)))
+    
+
+quiz2 <- tibble(
+    sentence = c(
+        "The guy in front of me just bought a pound of bacon, a bouquet, and a case of",
+        "You're the reason why I smile everyday. Can you follow me please? It would mean the",
+        "Hey sunshine, can you follow me and make me the",
+        "Very early observations on the Bills game: Offense still struggling but the", 
+        "Go on a romantic date at the", 
+        "Well I'm pretty sure my granny has some old bagpipes in her garage I'll dust them off and be on my", 
+        "Ohhhhh #PointBreak is on tomorrow. Love that film and haven't seen it in quite some", 
+        "After the ice bucket challenge Louis will push his long wet hair out of his eyes with his little", 
+        "Be grateful for the good times and keep the faith during the", 
+        "If this isn't the cutest thing you've ever seen, then you must be"
+    ),
+    word = c("beer", "world", "happiest", "defense", "beach", "way", "time", "fingers", "bad", "insane")
+)
+
+quiz2_test <- quiz2 %>%
+    by_row(~ predict_text_feather(.x$sentence, "tweets", 1)$word[1], .to = "pred") %>%
+    mutate_at(vars(pred), funs(comp = . == word)) 
+
+quiz2_accuracy <- summarize_at(quiz2_test, vars(comp), funs(sum(., na.rm = TRUE) / length(.)))
