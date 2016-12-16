@@ -60,6 +60,8 @@ calc_prob_remain <- function(disc, mle) {
 }
 
 make_prob_dt <- function(x, y, z, corp) {
+    require(feather)
+    
     mle <- calc_mle_dt(x, y, z)
     gt_freq <- calc_gt_dt(mle)
     
@@ -87,6 +89,10 @@ make_prob_dt <- function(x, y, z, corp) {
     write_rds(pred_1gram, paste0("data/final/pred_1gram_", corp, ".Rds"), compress = "gz")
     write_rds(pred_2gram, paste0("data/final/pred_2gram_", corp, ".Rds"), compress = "gz")
     write_rds(pred_3gram, paste0("data/final/pred_3gram_", corp, ".Rds"), compress = "gz")
+    
+    write_feather(pred_1gram, paste0("data/final/pred_1gram_", corp, ".feather"))
+    write_feather(pred_2gram, paste0("data/final/pred_2gram_", corp, ".feather"))
+    write_feather(pred_3gram, paste0("data/final/pred_3gram_", corp, ".feather"))
     
 }
 
