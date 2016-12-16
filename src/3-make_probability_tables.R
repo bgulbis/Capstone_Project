@@ -68,21 +68,21 @@ make_prob_dt <- function(x, y, z, corp) {
         mutate(discount = calc_discount(count3, tri, tri_next)) %>%
         group_by(word1, word2) %>%
         mutate(remain = calc_prob_remain(discount, mle3)) %>%
-        select(word1, word2, word3, mle3, discount, remain)
+        select(word1, word2, word3, count3, mle3, discount, remain)
     
     pred_2gram <- mle[[2]] %>%
         left_join(gt_freq, by = c("count2" = "count")) %>%
         mutate(discount = calc_discount(count2, bi, bi_next)) %>%
         group_by(word1) %>%
         mutate(remain = calc_prob_remain(discount, mle2)) %>%
-        select(word1, word2, mle2, discount, remain)
+        select(word1, word2, count2, mle2, discount, remain)
     
     pred_1gram <- mle[[1]] %>%
         left_join(gt_freq, by = c("count1" = "count")) %>%
         mutate(discount = calc_discount(count1, uni, uni_next)) %>%
         group_by(word1) %>%
         mutate(remain = calc_prob_remain(discount, mle1)) %>%
-        select(word1, mle1, discount, remain)
+        select(word1, count1, mle1, discount, remain)
 
     write_rds(pred_1gram, paste0("data/final/pred_1gram_", corp, ".Rds"), compress = "gz")
     write_rds(pred_2gram, paste0("data/final/pred_2gram_", corp, ".Rds"), compress = "gz")
@@ -97,6 +97,7 @@ nm <- str_replace_all(nm, ".Rds", "")
 files <- map(x, read_rds)
 names(files) <- nm
 list2env(files, .GlobalEnv)
+rm(files)
 
 make_prob_dt(tokens_blogs1, tokens_blogs2, tokens_blogs3, "blogs")
 make_prob_dt(tokens_news1, tokens_news2, tokens_news3, "news")
