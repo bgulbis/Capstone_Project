@@ -108,3 +108,26 @@ rm(files)
 make_prob_dt(tokens_blogs1, tokens_blogs2, tokens_blogs3, "blogs")
 make_prob_dt(tokens_news1, tokens_news2, tokens_news3, "news")
 make_prob_dt(tokens_tweets1, tokens_tweets2, tokens_tweets3, "tweets")
+
+tok1 <- c(tokens_blogs1, tokens_news1, tokens_tweets1)
+dt1 <- data.table(word = names(tok1), freq = tok1)
+dt1[, freq := sum(freq), by = word]
+dt1 <- unique(dt1, by = "word")
+tok1 <- dt1$freq
+names(tok1) <- dt1$word
+
+tok2 <- c(tokens_blogs2, tokens_news2, tokens_tweets2)
+dt2 <- data.table(word = names(tok2), freq = tok2)
+dt2[, freq := sum(freq), by = word]
+dt2 <- unique(dt2, by = "word")
+tok2 <- dt2$freq
+names(tok2) <- dt2$word
+
+tok3 <- c(tokens_blogs3, tokens_news3, tokens_tweets3)
+dt3 <- data.table(word = names(tok3), freq = tok3)
+dt3[, freq := sum(freq), by = word]
+dt3 <- unique(dt3, by = "word")
+tok3 <- dt3$freq
+names(tok3) <- dt3$word
+
+make_prob_dt(tok1, tok2, tok3, "all")
