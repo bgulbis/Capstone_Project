@@ -41,7 +41,7 @@ source("src/4a-prediction_model_feather.R")
 
 # set.seed(77123)
 blogs <- sample_n(valid_blogs, 100) %>%
-    by_row(~ predict_text_feather(.x$sentence, "blogs", 1)$word[1], .to = "pred") %>%
+    by_row(~ predict_text_feather(.x$sentence, "all", 1)$word[1], .to = "pred") %>%
     mutate_at(vars(pred), funs(comp = . == word)) 
 
 blogs_accuracy <- summarize_at(blogs, vars(comp), funs(sum(., na.rm = TRUE) / length(.)))
@@ -64,7 +64,7 @@ quiz2 <- tibble(
 )
 
 quiz2_test <- quiz2 %>%
-    by_row(~ predict_text_feather(.x$sentence, "tweets", 1)$word[1], .to = "pred") %>%
+    by_row(~ predict_text_feather(.x$sentence, "all", 1)$word[1], .to = "pred") %>%
     mutate_at(vars(pred), funs(comp = . == word)) 
 
 quiz2_accuracy <- summarize_at(quiz2_test, vars(comp), funs(sum(., na.rm = TRUE) / length(.)))
