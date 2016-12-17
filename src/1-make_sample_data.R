@@ -3,7 +3,7 @@
 library(tidyverse)
 
 frac <- 0.01
-valid <- 0.1
+valid <- 0.01
 
 blogs <- read_lines("data/raw/en_US.blogs.txt.gz") 
 
