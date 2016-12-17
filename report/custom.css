@@ -1,0 +1,9 @@
+.exclaim .reveal .state-background {
+  background: radial-gradient(circle, white, gray);
+} 
+
+.exclaim .reveal h1,
+.exclaim .reveal h2,
+.exclaim .reveal p {
+  color: black;
+}

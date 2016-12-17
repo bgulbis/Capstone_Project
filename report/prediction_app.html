@@ -559,6 +559,15 @@ body {
   font-family: 'Arial', Impact, sans-serif;
 }
 
+.exclaim .reveal .state-background {
+  background: radial-gradient(circle, white, gray);
+} 
+
+.exclaim .reveal h1,
+.exclaim .reveal h2,
+.exclaim .reveal p {
+  color: black;
+}
 
 
   </style>
@@ -791,7 +800,7 @@ hljs.initHighlightingOnLoad();
 </div>
 
 </section>
-<section data-transition="fade" data-transition-speed="default">
+<section data-state="exclaim" data-transition="fade" data-transition-speed="default">
 <h3>About the Application</h3>
 <div class="slideContent" >
 <ul>
@@ -808,11 +817,11 @@ hljs.initHighlightingOnLoad();
 </div>
 
 </section>
-<section data-transition="fade" data-transition-speed="default">
+<section data-state="exclaim" data-transition="fade" data-transition-speed="default">
 <h3>Prediction Algorithm</h3>
 <div class="slideContent" >
 <ul>
-<li>Take the data set and create 1-, 2-, and 3-gram tokens
+<li>Create 1-, 2-, and 3-gram tokens from the blogs, news, and Twitter data sets
 
 <ul>
 <li>Profane words are removed using Google&#39;s <a href="https://gist.github.com/jamiew/1112488">list of bad words</a></li>
@@ -820,25 +829,25 @@ hljs.initHighlightingOnLoad();
 <li>Stop words are included</li>
 </ul></li>
 <li>Calculate Good-Turing discount for each order token </li>
-<li>Calculate the probability for a word using Katz Backoff</li>
+<li>Calculate the probability for a word using Katz Backoff method</li>
 </ul>
 
 </div>
 
 </section>
-<section data-transition="fade" data-transition-speed="default">
-<h3>Data Sources</h3>
+<section data-state="exclaim" data-transition="fade" data-transition-speed="default">
+<h3>About the Data Sources</h3>
 <div class="slideContent" >
 <p>There are two data sources which can be used:</p>
 
 <ol>
-<li>HC Corpora data set
+<li><a href="http://www.corpora.heliohost.org/aboutcorpus.html">HC Corpora</a> data set
 
 <ul>
 <li>Obtained from scraping websites with a web crawler</li>
 <li>Divided into 3 categories by type of website: blogs, news, and Twitter</li>
 </ul></li>
-<li>Microsoft Web Language Model
+<li><a href="https://www.microsoft.com/cognitive-services/en-us/web-language-model-api">Microsoft Web Language Model</a>
 
 <ul>
 <li>Utilizes a large corpus obtained from websites</li>
@@ -849,7 +858,7 @@ hljs.initHighlightingOnLoad();
 </div>
 
 </section>
-<section data-transition="fade" data-transition-speed="default">
+<section data-state="exclaim" data-transition="fade" data-transition-speed="default">
 <h3>How to Use the Application</h3>
 <div class="slideContent" >
 <ol>
@@ -859,7 +868,7 @@ hljs.initHighlightingOnLoad();
 <li class="fragment">Choose whether to include common stop words in the results
 
 <ul>
-<li class="fragment">Does not apply when using the Microsoft Web Language Model</li>
+<li class="fragment">Not available when using the Microsoft Web Language Model</li>
 </ul></li>
 <li class="fragment">Select the number of predictions to return</li>
 <li class="fragment">Click the Predict button and get your predictions!</li>
