@@ -5,24 +5,21 @@ library(stringr)
 library(data.table)
 
 calc_mle_dt <- function(uni, bi, tri) {
-    x <- as.data.table(uni, TRUE)
-    y <- as.data.table(bi, TRUE)
-    z <- as.data.table(tri, TRUE)
+    x <- data.table(word1 = names(uni), count1 = uni)
+    y <- data.table(words = names(bi), count2 = bi)
+    z <- data.table(words = names(tri), coutn3 = tri)
     
-    x[, mle1 := uni / sum(uni)]
-    setnames(x, c("rn", "uni"), c("word1", "count1"))
-    
-    y[, c("word1", "word2") := tstrsplit(rn, "_", fixed = TRUE)]
-    y[, freq2 := sum(bi), by = word1]
-    y[, mle2 := bi / freq2]
-    y[, rn := NULL]
-    setnames(y, "bi", "count2")
-    
-    z[, c("word1", "word2", "word3") := tstrsplit(rn, "_", fixed = TRUE)]
-    z[, freq3 := sum(tri), by = c("word1", "word2")]
-    z[, mle3 := tri / freq3]
-    z[, rn := NULL]
-    setnames(z, "tri", "count3")
+    x[, mle1 := count1 / sum(count1)]
+
+    y[, c("word1", "word2") := tstrsplit(words, "_", fixed = TRUE)]
+    y[, freq2 := sum(count2), by = word1]
+    y[, mle2 := count2 / freq2]
+    y[, words := NULL]
+
+    z[, c("word1", "word2", "word3") := tstrsplit(words, "_", fixed = TRUE)]
+    z[, freq3 := sum(count3), by = c("word1", "word2")]
+    z[, mle3 := count3 / freq3]
+    z[, words := NULL]
 
     list(x, y, z)
 }
