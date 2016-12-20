@@ -152,53 +152,5 @@ make_token_files("data/tidy/train_blogs.Rds", "blogs")
 make_token_files("data/tidy/train_news.Rds", "news")
 make_token_files("data/tidy/train_tweets.Rds", "tweets")
 
-
 combine_tokens()
 combine_tokens("_nrml")
-
-# x <- list.files("data/tidy", "tokens_", full.names = TRUE)
-# nm <- list.files("data/tidy", "tokens_")
-# nm <- str_replace_all(nm, ".Rds", "")
-# files <- map(x, read_rds)
-# names(files) <- nm
-# list2env(files, .GlobalEnv)
-# rm(files)
-# 
-# make_token_tables(tokens_blogs1, tokens_blogs2, tokens_blogs3, "blogs")
-# make_token_tables(tokens_news1, tokens_news2, tokens_news3, "news")
-# make_token_tables(tokens_tweets1, tokens_tweets2, tokens_tweets3, "tweets")
-# 
-# tokens_all1 <- combine_tokens(tokens_blogs1, tokens_news1, tokens_tweets1)
-# write_rds(tokens_all1, "data/tidy/tokens_all1.Rds")
-# 
-# tokens_all2 <- combine_tokens(tokens_blogs2, tokens_news2, tokens_tweets2)
-# write_rds(tokens_all2, "data/tidy/tokens_all2.Rds")
-# 
-# tokens_all3 <- combine_tokens(tokens_blogs3, tokens_news3, tokens_tweets3)
-# write_rds(tokens_all3, "data/tidy/tokens_all3.Rds")
-# 
-# make_token_tables(tokens_all1, tokens_all2, tokens_all3, "all")
-# 
-# make_token_tables(tokens_blogs_nrml1, tokens_blogs_nrml2, tokens_blogs_nrml3, "blogs_nrml")
-# make_token_tables(tokens_news_nrml1, tokens_news_nrml2, tokens_news_nrml3, "news_nrml")
-# make_token_tables(tokens_tweets_nrml1, tokens_tweets_nrml2, tokens_tweets_nrml3, "tweets_nrml")
-# 
-# tokens_all_nrml1 <- combine_tokens(tokens_blogs_nrml1, tokens_news_nrml1, tokens_tweets_nrml1)
-# write_rds(tokens_all_nrml1, "data/tidy/tokens_all_nrml1.Rds")
-# 
-# tokens_all_nrml2 <- combine_tokens(tokens_blogs_nrml2, tokens_news_nrml2, tokens_tweets_nrml2)
-# write_rds(tokens_all_nrml2, "data/tidy/tokens_all_nrml2.Rds")
-# 
-# tokens_all_nrml3 <- combine_tokens(tokens_blogs_nrml3, tokens_news_nrml3, tokens_tweets_nrml3)
-# write_rds(tokens_all_nrml3, "data/tidy/tokens_all_nrml3.Rds")
-# 
-# make_token_tables(tokens_all_nrml1, tokens_all_nrml2, tokens_all_nrml3, "all_nrml")
-# 
-# make_discount_table(tokens_blogs1, tokens_blogs2, tokens_blogs3, "blogs")
-# make_discount_table(tokens_news1, tokens_news2, tokens_news3, "news")
-# make_discount_table(tokens_tweets1, tokens_tweets2, tokens_tweets3, "tweets")
-# make_discount_table(tokens_all1, tokens_all2, tokens_all3, "all")
-# make_discount_table(tokens_blogs_nrml1, tokens_blogs_nrml2, tokens_blogs_nrml3, "blogs_nrml")
-# make_discount_table(tokens_news_nrml1, tokens_news_nrml2, tokens_news_nrml3, "news_nrml")
-# make_discount_table(tokens_tweets_nrml1, tokens_tweets_nrml2, tokens_tweets_nrml3, "tweets_nrml")
-# make_discount_table(tokens_all_nrml1, tokens_all_nrml2, tokens_all_nrml3, "all")
