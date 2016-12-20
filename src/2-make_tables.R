@@ -70,11 +70,11 @@ make_token_tables <- function(x, y, z, nm) {
     uni <- data.table(word1 = names(x), count1 = x)
     
     bi <- data.table(words = names(y), count2 = y)
-    bi[, c("word1", "word2") := tstrsplit(words, "_", fixed = TRUE)]
+    bi[, c("word1", "word2") := tstrsplit(words, "_", fixed = TRUE), by = words]
     bi[, words := NULL]
     
     tri <- data.table(words = names(z), count3 = z)
-    tri[, c("word1", "word2", "word3") := tstrsplit(words, "_", fixed = TRUE)]
+    tri[, c("word1", "word2", "word3") := tstrsplit(words, "_", fixed = TRUE), by = words]
     tri[, words := NULL]
     
     write_feather(uni, paste0("data/final/tokens_", nm, "1.feather"))
@@ -134,8 +134,8 @@ make_token_files("data/tidy/train_blogs.Rds", "blogs_nrml", TRUE)
 make_token_files("data/tidy/train_news.Rds", "news_nrml", TRUE)
 make_token_files("data/tidy/train_tweets.Rds", "tweets_nrml", TRUE)
 
-x <- list.files("data/tidy", "tokens_blogs3[1-3]", full.names = TRUE)
-nm <- list.files("data/tidy", "tokens_blogs3[1-3]")
+x <- list.files("data/tidy", "tokens_", full.names = TRUE)
+nm <- list.files("data/tidy", "tokens_")
 nm <- str_replace_all(nm, ".Rds", "")
 files <- map(x, read_rds)
 names(files) <- nm
@@ -155,6 +155,8 @@ write_rds(tokens_all2, "data/tidy/tokens_all2.Rds")
 tokens_all3 <- combine_tokens(tokens_blogs3, tokens_news3, tokens_tweets3)
 write_rds(tokens_all3, "data/tidy/tokens_all3.Rds")
 
+make_token_tables(tokens_all1, tokens_all2, tokens_all3, "all")
+
 make_token_tables(tokens_blogs_nrml1, tokens_blogs_nrml2, tokens_blogs_nrml3, "blogs_nrml")
 make_token_tables(tokens_news_nrml1, tokens_news_nrml2, tokens_news_nrml3, "news_nrml")
 make_token_tables(tokens_tweets_nrml1, tokens_tweets_nrml2, tokens_tweets_nrml3, "tweets_nrml")
@@ -167,6 +169,8 @@ write_rds(tokens_all_nrml2, "data/tidy/tokens_all_nrml2.Rds")
 
 tokens_all_nrml3 <- combine_tokens(tokens_blogs_nrml3, tokens_news_nrml3, tokens_tweets_nrml3)
 write_rds(tokens_all_nrml3, "data/tidy/tokens_all_nrml3.Rds")
+
+make_token_tables(tokens_all_nrml1, tokens_all_nrml2, tokens_all_nrml3, "all_nrml")
 
 make_discount_table(tokens_blogs1, tokens_blogs2, tokens_blogs3, "blogs")
 make_discount_table(tokens_news1, tokens_news2, tokens_news3, "news")
