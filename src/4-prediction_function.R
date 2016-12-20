@@ -16,8 +16,8 @@ predict_words <- function(phrase, src = "all", return_n = 5, keep_stop = FALSE) 
     z <- read_feather(paste0("data/final/tokens_", src, "3.feather")) %>% 
         as.data.table()
     gt <- read_feather(paste0("data/final/discount_table_", src, ".feather")) %>% 
-        as.data.table() %>%
-        setkey(count)
+        as.data.table() 
+    setkey(gt, count)
     
     words <- str_to_lower(phrase) %>%
         word(-2, -1) %>%
