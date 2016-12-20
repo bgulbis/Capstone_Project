@@ -55,7 +55,7 @@ predict_words <- function(phrase, src = "all", return_n = 5, keep_stop = FALSE) 
     qbo_trig <- rbind(qbo_obs_tri, qbo_unobs_tri)[order(-qbo)]
     
     if (keep_stop == FALSE) {
-        qbo_trig[!(word %in% quanteda::stopwords("english"))][1:return_n]
+        qbo_trig[!(word3 %in% quanteda::stopwords("english"))][1:return_n]
     } else {
         qbo_trig[1:return_n]
     }
