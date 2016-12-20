@@ -2,39 +2,38 @@
 
 library(tidyverse)
 
-frac <- 0.01
-valid <- 0.01
+frac <- 500
 
 blogs <- read_lines("data/raw/en_US.blogs.txt.gz") 
 
 set.seed(77123)
-x <- sample.int(length(blogs), frac * length(blogs))
+x <- sample.int(length(blogs), frac)
 test_blogs <- blogs[x]
 train_blogs <- blogs[-x]
 
-y <- sample.int(length(train_blogs), valid * length(train_blogs))
+y <- sample.int(length(train_blogs), frac)
 valid_blogs <- blogs[y]
 train_blogs <- blogs[-y]
 
 news <- read_lines("data/raw/en_US.news.txt.gz") 
 
 set.seed(77123)
-x <- sample.int(length(news), frac * length(news))
+x <- sample.int(length(news), frac)
 test_news <- news[x]
 train_news <- news[-x]
 
-y <- sample.int(length(train_news), valid * length(train_news))
+y <- sample.int(length(train_news), frac)
 valid_news <- news[y]
 train_news <- news[-y]
 
 tweets <- read_lines("data/raw/en_US.twitter.txt.gz") 
 
 set.seed(77123)
-x <- sample.int(length(tweets), frac * length(tweets))
+x <- sample.int(length(tweets), frac)
 test_tweets <- tweets[x]
 train_tweets <- tweets[-x]
 
-y <- sample.int(length(train_tweets), valid * length(train_tweets))
+y <- sample.int(length(train_tweets), frac)
 valid_tweets <- tweets[y]
 train_tweets <- tweets[-y]
 
