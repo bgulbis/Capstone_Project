@@ -64,29 +64,43 @@ make_token_files <- function(x, y) {
     tri <- make_dtm_count(sentences, 3L, term_min = 3L) %>%
         map(sum_dtm)
 
-    make_token_tables(uni[[1]], bi[[1]], tri[[1]], y)
-    make_token_tables(uni[[2]], bi[[2]], tri[[2]], paste0(y, "_nrml"))
+    make_token_tables(uni, 1, y)
+    make_token_tables(bi, 2, y)
+    make_token_tables(tri, 3, y)
+
     make_discount_table(uni[[1]], bi[[1]], tri[[1]], y)
     make_discount_table(uni[[2]], bi[[2]], tri[[2]], paste0(y, "_nrml"))
 }
 
-make_token_tables <- function(x, y, z, nm) {
+make_token_tables <- function(x, i, nm) {
     require(data.table)
     require(feather)
     
-    uni <- data.table(word1 = names(x), count1 = x)
-    
-    bi <- data.table(words = names(y), count2 = y)
-    bi[, c("word1", "word2") := tstrsplit(words, "_", fixed = TRUE), by = words]
-    bi[, words := NULL]
-    
-    tri <- data.table(words = names(z), count3 = z)
-    tri[, c("word1", "word2", "word3") := tstrsplit(words, "_", fixed = TRUE), by = words]
-    tri[, words := NULL]
-    
-    write_feather(uni, paste0("data/final/tokens_", nm, "1.feather"))
-    write_feather(bi, paste0("data/final/tokens_", nm, "2.feather"))
-    write_feather(tri, paste0("data/final/tokens_", nm, "3.feather"))
+    if (i == 1) {
+        y <- data.table(word1 = names(x[[1]]), count1 = x[[1]])
+        setkey(y, word1)
+        z <- data.table(word1 = names(x[[2]]), nrml_count1 = x[[2]])
+        setkey(z, word1)
+        tbl <- y[z, nomatch = 0]
+    } else if (i == 2) {
+        y <- data.table(words = names(x[[1]]), count2 = x[[1]])
+        setkey(y, words)
+        z <- data.table(words = names(x[[2]]), nrml_count2 = x[[2]])
+        setkey(z, words)
+        tbl <- y[z, nomatch = 0]
+        tbl[, c("word1", "word2") := tstrsplit(words, "_", fixed = TRUE), by = words]
+        tbl[, words := NULL]
+    } else if (i == 3) {
+        y <- data.table(words = names(x[[1]]), count3 = x[[1]])
+        setkey(y, words)
+        z <- data.table(words = names(x[[2]]), nrml_count3 = x[[2]])
+        setkey(z, words)
+        tbl <- y[z, nomatch = 0]
+        tbl[, c("word1", "word2", "word3") := tstrsplit(words, "_", fixed = TRUE), by = words]
+        tbl[, words := NULL]
+    }
+
+    write_feather(tbl, paste0("data/final/tokens_", nm, i, ".feather"))
 }
 
 make_discount_table <- function(x, y, z, nm) {
@@ -118,13 +132,13 @@ make_discount_table <- function(x, y, z, nm) {
     write_feather(gt_freq, paste0("data/final/discount_table_", nm, ".feather"))
 }
 
-combine_tokens <- function(nrml = "") {
+combine_tokens <- function() {
     require(tidyverse)
     require(data.table)
     require(feather)
     
-    my_files <- list.files("data/final", paste0("tokens_(blogs|news|tweets)", nrml, "[1-3]"), full.names = TRUE)
-    nm <- list.files("data/final", paste0("tokens_(blogs|news|tweets)[1-3]"))
+    my_files <- list.files("data/final", "tokens_", full.names = TRUE)
+    nm <- list.files("data/final", "tokens_")
     nm <- stringr::str_replace_all(nm, ".feather", "")
     files <- map(my_files, read_feather)
     names(files) <- nm
@@ -133,17 +147,22 @@ combine_tokens <- function(nrml = "") {
     
     uni <- rbind(tokens_blogs1, tokens_news1, tokens_tweets1) %>% 
         as.data.table()
-    uni <- uni[, .(count1 = sum(count1)), by = "word1"]
+    uni <- uni[, .(count1 = sum(count1), nrml_count1 = sum(nrml_count1)), by = "word1"]
 
     bi <- rbind(tokens_blogs2, tokens_news2, tokens_tweets2) %>%
         as.data.table()
-    bi <- bi[, .(count2 = sum(count2)), by = c("word1", "word2")]
+    bi <- bi[, .(count2 = sum(count2), nrml_count2 = sum(nrml_count2)), by = c("word1", "word2")]
     
     tri <- rbind(tokens_blogs3, tokens_news3, tokens_tweets3) %>%
         as.data.table()
-    tri <- tri[, .(count3 = sum(count3)), by = c("word1", "word2", "word3")]
+    tri <- tri[, .(count3 = sum(count3), nrml_count3 = sum(nrml_count3)), by = c("word1", "word2", "word3")]
     
-    make_discount_table(uni$count1, bi$count2, tri$count3, paste0("all", nrml))
+    write_feather(uni, "data/final/tokens_all1.feather")
+    write_feather(bi, "data/final/tokens_all2.feather")
+    write_feather(tri, "data/final/tokens_all3.feather")
+    
+    make_discount_table(uni$count1, bi$count2, tri$count3, "all")
+    make_discount_table(uni$nrml_count1, bi$nrml_count2, tri$nrml_count3, "all_nrml")
 }
 
 # scripts ----------------------------------------------
@@ -151,6 +170,4 @@ combine_tokens <- function(nrml = "") {
 make_token_files("data/tidy/train_blogs.Rds", "blogs")
 make_token_files("data/tidy/train_news.Rds", "news")
 make_token_files("data/tidy/train_tweets.Rds", "tweets")
-
 combine_tokens()
-combine_tokens("_nrml")
