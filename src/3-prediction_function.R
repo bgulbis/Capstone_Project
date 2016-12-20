@@ -44,10 +44,6 @@ calc_gt_dt <- function(x, y , z) {
 gt <- calc_gt_dt(tokens_blogs1, tokens_blogs2, tokens_blogs3) %>% as.data.table()
 write_feather(gt, "data/final/gt_table.feather")
 
-calc_discount <- function(r, m, n) {
-    if_else(r > 0 & r <= 5, ((r + 1) / r) * (n / m), 1) 
-}
-
 x <- data.table(word1 = names(tokens_blogs1), count1 = tokens_blogs1)
 
 y <- data.table(words = names(tokens_blogs2), count2 = tokens_blogs2)
@@ -62,11 +58,23 @@ write_feather(x, "data/final/tokens_blogs1.feather")
 write_feather(y, "data/final/tokens_blogs2.feather")
 write_feather(z, "data/final/tokens_blogs3.feather")
 
-predict_words <- function(phrase) {
-    x <- read_feather("data/final/tokens_blogs1.feather") %>% as.data.table()
-    y <- read_feather("data/final/tokens_blogs2.feather") %>% as.data.table()
-    z <- read_feather("data/final/tokens_blogs3.feather") %>% as.data.table()
-    gt <- read_feather("data/final/gt_table.feather") %>% 
+predict_words <- function(phrase, src = "all") {
+    require(tidyverse)
+    require(stringr)
+    require(data.table)
+    require(feather)
+    
+    calc_discount <- function(r, m, n) {
+        if_else(r > 0 & r <= 5, ((r + 1) / r) * (n / m), 1) 
+    }
+    
+    x <- read_feather(paste0("data/final/tokens_", src, "1.feather")) %>% 
+        as.data.table()
+    y <- read_feather(paste0("data/final/tokens_", src, "2.feather")) %>% 
+        as.data.table()
+    z <- read_feather(paste0("data/final/tokens_", src, "3.feather")) %>% 
+        as.data.table()
+    gt <- read_feather(paste0("data/final/discount_table_", src, ".feather")) %>% 
         as.data.table() %>%
         setkey(count)
     
