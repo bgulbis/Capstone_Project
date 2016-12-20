@@ -11,20 +11,12 @@ x <- sample.int(length(blogs), frac)
 test_blogs <- blogs[x]
 train_blogs <- blogs[-x]
 
-y <- sample.int(length(train_blogs), frac)
-valid_blogs <- blogs[y]
-train_blogs <- blogs[-y]
-
 news <- read_lines("data/raw/en_US.news.txt.gz") 
 
 set.seed(77123)
 x <- sample.int(length(news), frac)
 test_news <- news[x]
 train_news <- news[-x]
-
-y <- sample.int(length(train_news), frac)
-valid_news <- news[y]
-train_news <- news[-y]
 
 tweets <- read_lines("data/raw/en_US.twitter.txt.gz") 
 
@@ -33,17 +25,9 @@ x <- sample.int(length(tweets), frac)
 test_tweets <- tweets[x]
 train_tweets <- tweets[-x]
 
-y <- sample.int(length(train_tweets), frac)
-valid_tweets <- tweets[y]
-train_tweets <- tweets[-y]
-
-write_rds(train_blogs, "data/tidy/train_blogs.Rds", compress = "gz")
-write_rds(train_news, "data/tidy/train_news.Rds", compress = "gz")
-write_rds(train_tweets, "data/tidy/train_tweets.Rds", compress = "gz")
-
-write_rds(valid_blogs, "data/tidy/valid_blogs.Rds", compress = "gz")
-write_rds(valid_news, "data/tidy/valid_news.Rds", compress = "gz")
-write_rds(valid_tweets, "data/tidy/valid_tweets.Rds", compress = "gz")
+write_rds(train_blogs, "data/final/train_blogs.Rds", compress = "gz")
+write_rds(train_news, "data/final/train_news.Rds", compress = "gz")
+write_rds(train_tweets, "data/final/train_tweets.Rds", compress = "gz")
 
 write_rds(test_blogs, "data/final/test_blogs.Rds", compress = "gz")
 write_rds(test_news, "data/final/test_news.Rds", compress = "gz")
