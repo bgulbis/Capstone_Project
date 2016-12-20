@@ -1,5 +1,5 @@
 
-predict_words <- function(phrase, src = "all", return_n = 5, keep_stop = FALSE) {
+predict_words <- function(phrase, src = "all", use_nrml = FALSE, return_n = 5, keep_stop = FALSE) {
     require(tidyverse)
     require(stringr)
     require(data.table)
@@ -15,6 +15,17 @@ predict_words <- function(phrase, src = "all", return_n = 5, keep_stop = FALSE) 
         as.data.table()
     z <- read_feather(paste0("data/final/tokens_", src, "3.feather")) %>% 
         as.data.table()
+    
+    if (use_nrml == TRUE) {
+        src <- paste0(src, "_nrml")
+        x[, count1 := NULL]
+        y[, count2 := NULL]
+        z[, count3 := NULL]
+        setnames(x, "nrml_count1", "count1")
+        setnames(y, "nrml_count2", "count2")
+        setnames(z, "nrml_count3", "count3")
+    }
+    
     gt <- read_feather(paste0("data/final/discount_table_", src, ".feather")) %>% 
         as.data.table() 
     setkey(gt, count)
