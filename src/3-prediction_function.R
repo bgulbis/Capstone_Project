@@ -1,64 +1,5 @@
 
-library(tidyverse)
-library(stringr)
-library(data.table)
-library(feather)
-
-x <- list.files("data/tidy", "tokens_blogs", full.names = TRUE)
-nm <- list.files("data/tidy", "tokens_blogs")
-nm <- str_replace_all(nm, ".Rds", "")
-files <- map(x, read_rds)
-names(files) <- nm
-list2env(files, .GlobalEnv)
-rm(files)
-
-test <- "The guy in front of me just bought a pound of bacon, a bouquet, and a case of"
-
-library(microbenchmark)
-microbenchmark(x <- predict_words(test), times = 10)
-
-calc_gt_dt <- function(x, y , z) {
-    gt_1gram <- table(x) %>%
-        as_tibble() %>%
-        rename(Var1 = x, uni = n) 
-    
-    gt_2gram <- table(y) %>%
-        as_tibble() %>%
-        rename(Var1 = y, bi = n) 
-    
-    gt_3gram <- table(z) %>%
-        as_tibble() %>%
-        rename(Var1 = z, tri = n) 
-    
-    gt_freq <- full_join(gt_1gram, gt_2gram, by = "Var1") %>%
-        full_join(gt_3gram, by = "Var1") %>%
-        rename(count = Var1) %>%
-        dmap_at("count", as.integer) %>%
-        arrange(count) %>%
-        mutate(uni_next = if_else(lead(count) == count + 1, lead(uni), 0L),
-               bi_next = if_else(lead(count) == count + 1, lead(bi), 0L),
-               tri_next = if_else(lead(count) == count + 1, lead(tri), 0L)) %>%
-        dmap(~ coalesce(.x, 0L)) 
-}
-
-gt <- calc_gt_dt(tokens_blogs1, tokens_blogs2, tokens_blogs3) %>% as.data.table()
-write_feather(gt, "data/final/gt_table.feather")
-
-x <- data.table(word1 = names(tokens_blogs1), count1 = tokens_blogs1)
-
-y <- data.table(words = names(tokens_blogs2), count2 = tokens_blogs2)
-y[, c("word1", "word2") := tstrsplit(words, "_", fixed = TRUE)]
-y[, words := NULL]
-
-z <- data.table(words = names(tokens_blogs3), count3 = tokens_blogs3)
-z[, c("word1", "word2", "word3") := tstrsplit(words, "_", fixed = TRUE)]
-z[, words := NULL]
-
-write_feather(x, "data/final/tokens_blogs1.feather")
-write_feather(y, "data/final/tokens_blogs2.feather")
-write_feather(z, "data/final/tokens_blogs3.feather")
-
-predict_words <- function(phrase, src = "all") {
+predict_words <- function(phrase, src = "all", return_n = 5, keep_stop = FALSE) {
     require(tidyverse)
     require(stringr)
     require(data.table)
@@ -112,4 +53,10 @@ predict_words <- function(phrase, src = "all") {
 
     qbo_unobs_tri <- unobs_trigram[qbo_bigram, nomatch = 0][, .(word1, word2, word3, qbo = alpha3 * (qbo2 / sum(qbo2)))]
     qbo_trig <- rbind(qbo_obs_tri, qbo_unobs_tri)[order(-qbo)]
+    
+    if (keep_stop == FALSE) {
+        qbo_trig[!(word %in% quanteda::stopwords("english"))][1:return_n]
+    } else {
+        qbo_trig[1:return_n]
+    }
 }
