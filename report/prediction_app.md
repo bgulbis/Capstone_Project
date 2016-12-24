@@ -1,7 +1,7 @@
 NLP Word Prediction Application
 ========================================================
 author: Brian Gulbis
-date: December 17, 2016
+date: December 23, 2016
 autosize: true
 font-family: 'Arial'
 transition: fade
@@ -17,16 +17,16 @@ type: exclaim
     - [Microsoft Web Language Model](https://www.microsoft.com/cognitive-services/en-us/web-language-model-api)
 * Ultimately, this could be used as the foundation for a text prediction keyboard
 
-Prediction Algorithm
+Prediction Algorithm for HC Corpora
 ========================================================
 type: exclaim
 
 * Create 1-, 2-, and 3-gram tokens from the blogs, news, and Twitter data sets
     - Profane words are removed using Google's [list of bad words](https://gist.github.com/jamiew/1112488)
     - Numbers and punctuation are removed
-    - Stop words are included
-* Calculate Good-Turing discount for each order token 
-* Calculate the probability for a word using Katz Backoff method
+    - Stop words are included and may optionally be removed from the prediction results
+* Calculate Good-Turing discount for each order token to allow for unseen words
+* Calculate the probability for a word using Katz back-off method
 
 About the Data Sources
 ========================================================
@@ -44,7 +44,6 @@ There are two data sources which can be used:
 How to Use the Application
 ========================================================
 type: exclaim
-incremental: true
 
 1. Go to the [Prediction Application](https://bgulbis.shinyapps.io/Prediction_App/) on Shinyapps.io
 1. Enter a phrase or sentence in the text box
