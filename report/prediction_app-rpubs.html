@@ -758,7 +758,7 @@ hljs.initHighlightingOnLoad();
   <div class="slides">
 
 <section data-state="section" data-transition="fade" data-transition-speed="default">
-<h1>NLP Word Prediction Application</h1><p>Brian Gulbis<br/>December 17, 2016</p>
+<h1>NLP Word Prediction Application</h1><p>Brian Gulbis<br/>December 23, 2016</p>
 
 <div class="slideContent" >
 
@@ -783,7 +783,7 @@ hljs.initHighlightingOnLoad();
 
 </section>
 <section data-state="exclaim" data-transition="fade" data-transition-speed="default">
-<h3>Prediction Algorithm</h3>
+<h3>Prediction Algorithm for HC Corpora</h3>
 <div class="slideContent" >
 <ul>
 <li>Create 1-, 2-, and 3-gram tokens from the blogs, news, and Twitter data sets
@@ -791,10 +791,10 @@ hljs.initHighlightingOnLoad();
 <ul>
 <li>Profane words are removed using Google&#39;s <a href="https://gist.github.com/jamiew/1112488">list of bad words</a></li>
 <li>Numbers and punctuation are removed</li>
-<li>Stop words are included</li>
+<li>Stop words are included and may optionally be removed from the prediction results</li>
 </ul></li>
-<li>Calculate Good-Turing discount for each order token </li>
-<li>Calculate the probability for a word using Katz Backoff method</li>
+<li>Calculate Good-Turing discount for each order token to allow for unseen words</li>
+<li>Calculate the probability for a word using Katz back-off method</li>
 </ul>
 
 </div>
@@ -811,6 +811,7 @@ hljs.initHighlightingOnLoad();
 <ul>
 <li>Obtained from scraping websites with a web crawler</li>
 <li>Divided into 3 categories by type of website: blogs, news, and Twitter</li>
+<li>Accuracy on a test set is around 12%</li>
 </ul></li>
 <li><a href="https://www.microsoft.com/cognitive-services/en-us/web-language-model-api">Microsoft Web Language Model</a>
 
@@ -827,16 +828,16 @@ hljs.initHighlightingOnLoad();
 <h3>How to Use the Application</h3>
 <div class="slideContent" >
 <ol>
-<li class="fragment">Go to the <a href="https://bgulbis.shinyapps.io/Prediction_App/">Prediction Application</a> on Shinyapps.io</li>
-<li class="fragment">Enter a phrase or sentence in the text box</li>
-<li class="fragment">Choose your data source for prediction</li>
-<li class="fragment">Choose whether to include common stop words in the results
+<li>Go to the <a href="https://bgulbis.shinyapps.io/Prediction_App/">Prediction Application</a> on Shinyapps.io</li>
+<li>Enter a phrase or sentence in the text box</li>
+<li>Choose your data source for prediction</li>
+<li>Choose whether to include common stop words in the results
 
 <ul>
-<li class="fragment">Not available when using the Microsoft Web Language Model</li>
+<li>Not available when using the Microsoft Web Language Model</li>
 </ul></li>
-<li class="fragment">Select the number of predictions to return</li>
-<li class="fragment">Click the Predict button and get your predictions!</li>
+<li>Select the number of predictions to return</li>
+<li>Click the Predict button and get your predictions!</li>
 </ol>
 
 </div>

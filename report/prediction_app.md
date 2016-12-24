@@ -37,6 +37,7 @@ There are two data sources which can be used:
 1. [HC Corpora](http://www.corpora.heliohost.org/aboutcorpus.html) data set
     * Obtained from scraping websites with a web crawler
     * Divided into 3 categories by type of website: blogs, news, and Twitter
+    * Accuracy on a test set is around 12%
 1. [Microsoft Web Language Model](https://www.microsoft.com/cognitive-services/en-us/web-language-model-api)
     * Utilizes a large corpus obtained from websites
     * Contains 1- to 5-gram tokens
