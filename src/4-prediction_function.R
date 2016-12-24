@@ -1,5 +1,6 @@
 
 library(tidyverse)
+library(data.table)
 
 x <- read_rds("data/final/tokens_all1.Rds")
 y <- read_rds("data/final/tokens_all2.Rds")
@@ -7,7 +8,7 @@ z <- read_rds("data/final/tokens_all3.Rds")
 gt <- read_rds("data/final/discount_table_all.Rds") %>% as.data.table
 setkey(gt, count)
 
-predict_words <- function(phrase, src = "all", return_n = 5, keep_stop = FALSE) {
+predict_words <- function(phrase, return_n = 5, keep_stop = FALSE) {
     require(tidyverse)
     require(stringr)
     require(data.table)
@@ -16,16 +17,6 @@ predict_words <- function(phrase, src = "all", return_n = 5, keep_stop = FALSE) 
     calc_discount <- function(r, m, n) {
         if_else(r > 0 & r <= 5, ((r + 1) / r) * (n / m), 1) 
     }
-    
-    # x <- read_feather(paste0("data/final/tokens_", src, "1.feather")) %>% 
-    #     as.data.table()
-    # y <- read_feather(paste0("data/final/tokens_", src, "2.feather")) %>% 
-    #     as.data.table()
-    # z <- read_feather(paste0("data/final/tokens_", src, "3.feather")) %>% 
-    #     as.data.table()
-    # 
-    # gt <- read_feather(paste0("data/final/discount_table_", src, ".feather")) %>% 
-    #     as.data.table() 
     
     words <- str_to_lower(phrase) %>%
         word(-2, -1) %>%
