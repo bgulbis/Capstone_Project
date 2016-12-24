@@ -2,7 +2,7 @@
 
 source("src/4-prediction_function.R")
 
-# library(tidyverse)
+library(tidyverse)
 
 make_set <- function(x) {
     require(tidyverse)
@@ -68,7 +68,7 @@ test_quiz2_accuracy <- test_quiz2 %>%
     summarize(pred_all = sum(pred_all == word) / n())
 
 valid_set <- bind_rows(valid_blogs, valid_news, valid_tweets) %>%
-    sample_n(500) 
+    sample_n(5) 
 
 test1 <- valid_set %>%
     by_row(~ predict_words(.x$sentence, return_n = 1), .collate = "rows") %>%
