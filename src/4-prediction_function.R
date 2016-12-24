@@ -1,58 +1,60 @@
 
-predict_words <- function(phrase, src = "all", use_nrml = FALSE, return_n = 5, keep_stop = FALSE) {
+library(tidyverse)
+
+x <- read_rds("data/final/tokens_all1.Rds")
+y <- read_rds("data/final/tokens_all2.Rds")
+z <- read_rds("data/final/tokens_all3.Rds")
+gt <- read_rds("data/final/discount_table_all.Rds") %>% as.data.table
+setkey(gt, count)
+
+predict_words <- function(phrase, src = "all", return_n = 5, keep_stop = FALSE) {
     require(tidyverse)
     require(stringr)
     require(data.table)
-    require(feather)
+    # require(feather)
     
     calc_discount <- function(r, m, n) {
         if_else(r > 0 & r <= 5, ((r + 1) / r) * (n / m), 1) 
     }
     
-    x <- read_feather(paste0("data/final/tokens_", src, "1.feather")) %>% 
-        as.data.table()
-    y <- read_feather(paste0("data/final/tokens_", src, "2.feather")) %>% 
-        as.data.table()
-    z <- read_feather(paste0("data/final/tokens_", src, "3.feather")) %>% 
-        as.data.table()
-    
-    if (use_nrml == TRUE) {
-        src <- paste0(src, "_nrml")
-        x[, count1 := NULL]
-        y[, count2 := NULL]
-        z[, count3 := NULL]
-        setnames(x, "nrml_count1", "count1")
-        setnames(y, "nrml_count2", "count2")
-        setnames(z, "nrml_count3", "count3")
-    }
-    
-    gt <- read_feather(paste0("data/final/discount_table_", src, ".feather")) %>% 
-        as.data.table() 
-    setkey(gt, count)
+    # x <- read_feather(paste0("data/final/tokens_", src, "1.feather")) %>% 
+    #     as.data.table()
+    # y <- read_feather(paste0("data/final/tokens_", src, "2.feather")) %>% 
+    #     as.data.table()
+    # z <- read_feather(paste0("data/final/tokens_", src, "3.feather")) %>% 
+    #     as.data.table()
+    # 
+    # gt <- read_feather(paste0("data/final/discount_table_", src, ".feather")) %>% 
+    #     as.data.table() 
     
     words <- str_to_lower(phrase) %>%
         word(-2, -1) %>%
         str_split(" ") %>%
         unlist()
     
-    bigram_count <- y[word1 == words[1] & word2 == words[2], sum(count2)]
-    unigram_count <- x[word1 == words[2], sum(count1)]
+    bigram_count <- y[.(words[1], words[2]), sum(count2)]
+    unigram_count <- x[words[2], sum(count1)]
     
-    obs_trigram <- z[word1 == words[1] & word2 == words[2], ]
+    obs_trigram <- z[.(words[1], words[2])]
     setkey(obs_trigram, count3)
 
-    qbo_obs_tri <- obs_trigram[gt, nomatch = 0][, discount := calc_discount(count3, tri, tri_next)][, .(word1, word2, word3, qbo = (count3 - discount) / bigram_count)]
+    qbo_obs_tri <- obs_trigram[gt, nomatch = 0
+                               ][, discount := calc_discount(count3, tri, tri_next)
+                                 ][, .(word1, word2, word3, qbo = (count3 - discount) / bigram_count)]
     
     unobs_words <- x[!(word1 %in% qbo_obs_tri$word3), ]
     
-    obs_bigram <- y[word1 == words[2], ]
+    obs_bigram <- y[words[2]]
     setkey(obs_bigram, count2)
 
-    qbo_obs_bi <- obs_bigram[gt, nomatch = 0][, discount := calc_discount(count2, bi, bi_next)][, .(word1, word2, count2, qbo2 = (count2 - discount) / unigram_count)]
+    qbo_obs_bi <- obs_bigram[gt, nomatch = 0
+                             ][, discount := calc_discount(count2, bi, bi_next)
+                               ][, .(word1, word2, count2, qbo2 = (count2 - discount) / unigram_count)]
     
     alpha2 <- 1 - sum(qbo_obs_bi$qbo2)
     
-    qbo_unobs_bi <- unobs_words[!(word1 %in% qbo_obs_bi$word2), ][, .(word1 = words[2], word2 = word1, count2 = count1, qbo2 = alpha2 * (count1 / sum(count1)))]
+    qbo_unobs_bi <- unobs_words[!(word1 %in% qbo_obs_bi$word2)
+                                ][, .(word1 = words[2], word2 = word1, count2 = count1, qbo2 = alpha2 * (count1 / sum(count1)))]
     
     qbo_bigram <- rbind(qbo_obs_bi, qbo_unobs_bi)
     setkey(qbo_bigram, word1, word2)
@@ -62,7 +64,8 @@ predict_words <- function(phrase, src = "all", use_nrml = FALSE, return_n = 5, k
     unobs_trigram <- unobs_words[, .(word1 = words[1], word2 = words[2], word3 = word1, count1)]
     setkey(unobs_trigram, word2, word3)
 
-    qbo_unobs_tri <- unobs_trigram[qbo_bigram, nomatch = 0][, .(word1, word2, word3, qbo = alpha3 * (qbo2 / sum(qbo2)))]
+    qbo_unobs_tri <- unobs_trigram[qbo_bigram, nomatch = 0
+                                   ][, .(word1, word2, word3, qbo = alpha3 * (qbo2 / sum(qbo2)))]
     qbo_trig <- rbind(qbo_obs_tri, qbo_unobs_tri)[order(-qbo)]
     
     if (keep_stop == FALSE) {
