@@ -1,6 +1,8 @@
 # validation
 
-library(tidyverse)
+source("src/4-prediction_function.R")
+
+# library(tidyverse)
 
 make_set <- function(x) {
     require(tidyverse)
@@ -37,16 +39,6 @@ valid_news <- read_rds("data/tidy/valid_news.Rds") %>%
 valid_tweets <- read_rds("data/tidy/valid_tweets.Rds") %>%
     make_set()
 
-source("src/4a-prediction_model_feather.R")
-
-# set.seed(77123)
-blogs <- sample_n(valid_blogs, 100) %>%
-    by_row(~ predict_text_feather(.x$sentence, "all", 1)$word[1], .to = "pred") %>%
-    mutate_at(vars(pred), funs(comp = . == word)) 
-
-blogs_accuracy <- summarize_at(blogs, vars(comp), funs(sum(., na.rm = TRUE) / length(.)))
-    
-
 quiz2 <- tibble(
     sentence = c(
         "The guy in front of me just bought a pound of bacon, a bouquet, and a case of",
@@ -63,8 +55,31 @@ quiz2 <- tibble(
     word = c("beer", "world", "happiest", "defense", "beach", "way", "time", "fingers", "bad", "insane")
 )
 
-quiz2_test <- quiz2 %>%
-    by_row(~ predict_text_feather(.x$sentence, "all", 1)$word[1], .to = "pred") %>%
-    mutate_at(vars(pred), funs(comp = . == word)) 
 
-quiz2_accuracy <- summarize_at(quiz2_test, vars(comp), funs(sum(., na.rm = TRUE) / length(.)))
+# src <- c("blogs", "news", "tweets", "all")
+
+microbenchmark::microbenchmark(predict_words(quiz2$sentence[1], "all"), times = 10)
+
+test_quiz2 <- quiz2 %>%
+    by_row(~ predict_words(.x$sentence, return_n = 1), .collate = "rows") %>%
+    select(sentence, word, pred_all = word3) 
+    
+test_quiz2_accuracy <- test_quiz2 %>%
+    summarize(pred_all = sum(pred_all == word) / n())
+
+valid_set <- bind_rows(valid_blogs, valid_news, valid_tweets) %>%
+    sample_n(200) 
+
+test1 <- valid_set %>%
+    by_row(~ predict_words(.x$sentence, return_n = 1), .collate = "rows") %>%
+    select(sentence, word, pred_all = word3) 
+
+test1_accuracy <- test1 %>%
+    summarize(pred_all = sum(word == pred_all) / n())
+
+test2 <- valid_set %>%
+    by_row(~ predict_words(.x$sentence, return_n = 1, keep_stop = TRUE), .collate = "rows") %>%
+    select(sentence, word, pred_all = word3) 
+
+test21_accuracy <- test2 %>%
+    summarize(pred_all = sum(word == pred_all) / n())
