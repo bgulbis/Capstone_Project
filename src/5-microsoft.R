@@ -23,7 +23,13 @@ predict_web <- function(x, n = 5) {
     r <- POST(url, add_headers(api), 
               query = list(model = "body", order = n, words = words))
     
-    fromJSON(content(r, "text"))$candidates
+    ans <- fromJSON(content(r, "text"))$candidates
+    
+    if (length(ans) == 0) {
+        data.frame(word = "Unable to find a prediction", probability = 0)
+    } else {
+        ans
+    }
 }
 
 cond_url <- "https://api.projectoxford.ai/text/weblm/v1.0/calculateConditionalProbability"
