@@ -113,6 +113,8 @@ x6 <- "I'd just like all of these questions answered, a presentation of evidence
 y6 <- c("case", "matter", "incident", "account")
 check_prob(x6, y6)
 # matter
+a6 <- predict_web(x6)
+a a6 <- predict_web("and a jury to")
 
 x7 <- "I can't deal with unsymetrical things. I can't even hold an uneven number of bags of groceries in each"
 y7 <- c("finger", "toe", "hand", "arm")
