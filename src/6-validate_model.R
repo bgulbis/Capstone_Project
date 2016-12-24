@@ -68,7 +68,7 @@ test_quiz2_accuracy <- test_quiz2 %>%
     summarize(pred_all = sum(pred_all == word) / n())
 
 valid_set <- bind_rows(valid_blogs, valid_news, valid_tweets) %>%
-    sample_n(200) 
+    sample_n(500) 
 
 test1 <- valid_set %>%
     by_row(~ predict_words(.x$sentence, return_n = 1), .collate = "rows") %>%
@@ -83,3 +83,53 @@ test2 <- valid_set %>%
 
 test21_accuracy <- test2 %>%
     summarize(pred_all = sum(word == pred_all) / n())
+
+x1 <- "When you breathe, I want to be the air for you. I'll be there for you, I'd live and I'd"
+y1 <- c("eat", "sleep", "die", "give")
+check_prob(x1, y1)
+# die
+
+x2 <- "Guy at my table's wife got up to go to the bathroom and I asked about dessert and he started telling me about his"
+y2 <- c("spiritual", "horticultural", "marital", "financial")
+check_prob(x2, y2)
+# marital
+
+x3 <- "I'd give anything to see arctic monkeys this"
+y3 <- c("decade", "weekend", "morning", "month")
+check_prob(x3, y3)
+# weekend
+
+x4 <- "Talking to your mom has the same effect as a hug and helps reduce your"
+y4 <- c("sleepiness", "stress", "happiness", "hunger")
+check_prob(x4, y4)
+# stress
+
+x5 <- "When you were in Holland you were like 1 inch away from me but you hadn't time to take a"
+y5 <- c("walk", "look", "minute", "picture")
+check_prob(x5, y5)
+# picture
+
+x6 <- "I'd just like all of these questions answered, a presentation of evidence, and a jury to settle the"
+y6 <- c("case", "matter", "incident", "account")
+check_prob(x6, y6)
+# matter
+
+x7 <- "I can't deal with unsymetrical things. I can't even hold an uneven number of bags of groceries in each"
+y7 <- c("finger", "toe", "hand", "arm")
+check_prob(x7, y7)
+# hand
+
+x8 <- "Every inch of you is perfect from the bottom to the"
+y8 <- c("side", "center", "top", "middle")
+check_prob(x8, y8)
+# top
+
+x9 <- "I’m thankful my childhood was filled with imagination and bruises from playing"
+y9 <- c("inside", "outside", "weekly", "daily")
+check_prob(x9, y9)
+# outside
+
+x10 <- "I like how the same people are in almost all of Adam Sandler's"
+y10 <- c("stories", "movies", "novels", "pictures")
+check_prob(x10, y10)
+# movies
